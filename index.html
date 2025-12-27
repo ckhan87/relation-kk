@@ -3,22 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harmony V7.1 (Cloud Sync)</title>
+    <title>Harmony V8 (Personal)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Firebase SDKs (Compat version for broader support) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans SC', sans-serif; background-color: #F8FAFC; color: #334155; -webkit-tap-highlight-color: transparent; }
         .card { background-color: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 1.25rem; margin-bottom: 1rem; border: 1px solid #f1f5f9; transition: all 0.2s; }
         .card:active { transform: scale(0.99); background-color: #fafafa; }
-        .btn-primary { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white; font-weight: bold; padding: 0.75rem; border-radius: 0.5rem; width: 100%; transition: opacity 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-primary { color: white; font-weight: bold; padding: 0.75rem; border-radius: 0.5rem; width: 100%; transition: opacity 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
         .btn-primary:active { opacity: 0.9; transform: translateY(1px); }
-        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 5px;}
+        .loading-spinner { border: 3px solid #ffffff; border-top: 3px solid rgba(255,255,255,0.3); border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         /* Markdown Styling */
@@ -27,69 +22,27 @@
         .prose ul { list-style-type: none; padding-left: 0; margin-bottom: 0.5em; font-size: 0.9em; }
         .prose li::before { content: "• "; color: #be185d; font-weight: bold; }
         .prose p { margin-bottom: 0.5em; font-size: 0.9em; line-height: 1.6; }
-
-        /* Login Modal */
-        #auth-modal { backdrop-filter: blur(8px); background-color: rgba(0,0,0,0.6); }
     </style>
 </head>
 <body class="pb-24">
 
     <!-- Header -->
-    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 px-4 py-3 flex justify-between items-center shadow-sm">
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 px-4 py-3 shadow-sm">
         <div class="flex items-center gap-2">
-            <h1 class="font-bold text-slate-800 text-lg tracking-tight">Harmony V7.1</h1>
-            <div id="status-container" class="flex items-center gap-1">
-                <span id="status-indicator" class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
-                <span id="status-text" class="text-[10px] text-slate-400">连接中...</span>
-            </div>
+            <h1 class="font-bold text-slate-800 text-lg tracking-tight">Harmony V8</h1>
+            <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">已激活</span>
         </div>
-        <button onclick="showAuthModal()" class="text-xs bg-slate-100 text-slate-600 border border-slate-200 px-3 py-1.5 rounded-full font-medium">
-            ☁️ 云端同步
-        </button>
     </header>
-
-    <!-- AUTH MODAL (Cloud Sync) -->
-    <div id="auth-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-2xl w-11/12 max-w-sm shadow-2xl transform transition-all scale-100">
-            <div class="text-center mb-6">
-                <h3 class="text-xl font-bold text-slate-800">☁️ 云端同步设置</h3>
-                <p class="text-xs text-slate-500 mt-1">在一台设备保存，跨设备自动同步 API Key</p>
-            </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-600 ml-1">同步账号 (自定义):</label>
-                    <input type="text" id="sync-id" placeholder="例: David_Love_2025" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-600 ml-1">同步密码:</label>
-                    <input type="password" id="sync-pin" placeholder="设置一个简单密码" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                </div>
-                
-                <div id="key-section" class="hidden bg-yellow-50 p-3 rounded-xl border border-yellow-100">
-                    <label class="text-xs font-bold text-yellow-800 ml-1">🔑 Gemini API Key:</label>
-                    <input type="password" id="api-key-input" placeholder="粘贴 AIza 开头的 Key" class="w-full p-2 border border-yellow-200 rounded-lg bg-white text-xs mt-1">
-                    <p class="text-[10px] text-yellow-600 mt-1">首次使用需输入，之后自动同步。</p>
-                </div>
-
-                <div class="flex gap-3 mt-2">
-                    <button onclick="closeAuthModal()" class="flex-1 py-3 text-slate-500 font-bold text-sm">取消</button>
-                    <button onclick="handleCloudSync()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg hover:bg-blue-700">确认 / 同步</button>
-                </div>
-                <p id="auth-msg" class="text-center text-xs text-red-500 h-4"></p>
-            </div>
-        </div>
-    </div>
 
     <main class="max-w-md mx-auto px-4 mt-6 space-y-8">
 
-        <!-- 1. Message (Enhanced) -->
+        <!-- 1. Message (Top Priority) -->
         <section>
             <div class="flex items-center gap-2 mb-2">
                 <span class="text-2xl">💌</span>
                 <div>
                     <h2 class="font-bold text-slate-800 text-lg">暖心信使 (Message)</h2>
-                    <p class="text-[10px] text-slate-400">含行动指南</p>
+                    <p class="text-[10px] text-slate-400">话术 + 配套行动</p>
                 </div>
             </div>
             <div class="card border-l-4 border-pink-500 bg-gradient-to-br from-white to-pink-50/30">
@@ -101,7 +54,8 @@
                     <option value="random_love">💖 没什么原因：日常撩拨</option>
                 </select>
                 <button onclick="runGemini('message')" class="btn-primary bg-pink-600 shadow-pink-200">
-                    ✨ 生成话术 + 配套行动
+                    <span>✨ 生成话术 + 行动</span>
+                    <div id="loading-message" class="loading-spinner hidden"></div>
                 </button>
                 <div id="result-message" class="mt-4 hidden bg-white p-4 rounded-xl border border-pink-100 text-sm shadow-sm relative">
                     <div id="content-message" class="prose prose-sm"></div>
@@ -123,7 +77,8 @@
                     <option value="appreciation">🙏 互相感谢 (Gratitude)</option>
                 </select>
                 <button onclick="runGemini('deeptalk')" class="btn-primary bg-teal-600 shadow-teal-200">
-                    ✨ 获取灵魂话题
+                    <span>✨ 获取灵魂话题</span>
+                    <div id="loading-deeptalk" class="loading-spinner hidden"></div>
                 </button>
                 <div id="result-deeptalk" class="mt-4 hidden bg-white p-4 rounded-xl border border-teal-100 text-sm text-center font-medium shadow-sm">
                     <p id="content-deeptalk"></p>
@@ -144,7 +99,8 @@
                     <option value="passive_to_active">💃 长期：如何让她变主动？</option>
                 </select>
                 <button onclick="runGemini('booster')" class="btn-primary bg-rose-600 shadow-rose-200">
-                    ✨ 获取大师建议
+                    <span>✨ 获取大师建议</span>
+                    <div id="loading-booster" class="loading-spinner hidden"></div>
                 </button>
                 <div id="result-booster" class="mt-4 hidden bg-white p-4 rounded-xl border border-rose-100 text-sm shadow-sm">
                     <div id="content-booster" class="prose prose-sm"></div>
@@ -152,7 +108,7 @@
             </div>
         </section>
 
-        <!-- 4. Apology (New Feature) -->
+        <!-- 4. Apology (Rescue) -->
         <section>
             <div class="flex items-center gap-2 mb-2">
                 <span class="text-2xl">🚑</span>
@@ -167,7 +123,8 @@
                     <option value="ignored_msg">🔕 忽略信息/没回电话</option>
                 </select>
                 <button onclick="runGemini('apology')" class="btn-primary bg-orange-600 shadow-orange-200">
-                    ✨ 求生指南 (话术+补偿)
+                    <span>✨ 求生指南 (话术+补偿)</span>
+                    <div id="loading-apology" class="loading-spinner hidden"></div>
                 </button>
                 <div id="result-apology" class="mt-4 hidden bg-white p-4 rounded-xl border border-orange-100 text-sm shadow-sm">
                     <div id="content-apology" class="prose prose-sm"></div>
@@ -175,7 +132,7 @@
             </div>
         </section>
 
-        <!-- 5. Surprise & Warmth (New Features) -->
+        <!-- 5. Surprise & Warmth -->
         <div class="grid grid-cols-2 gap-4">
             <!-- Surprise -->
             <section>
@@ -189,8 +146,9 @@
                         <option value="digital">📱 手机/线上</option>
                         <option value="food">🍩 食物</option>
                     </select>
-                    <button onclick="runGemini('surprise')" class="w-full bg-yellow-500 text-white font-bold py-2 rounded-lg text-xs shadow-sm">
-                        生成点子
+                    <button onclick="runGemini('surprise')" class="w-full bg-yellow-500 text-white font-bold py-2 rounded-lg text-xs shadow-sm flex justify-center gap-1">
+                        <span>生成点子</span>
+                        <div id="loading-surprise" class="loading-spinner hidden w-3 h-3 border-2"></div>
                     </button>
                     <div id="result-surprise" class="mt-2 hidden text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100"><div id="content-surprise" class="prose prose-sm"></div></div>
                 </div>
@@ -204,8 +162,9 @@
                 </div>
                 <div class="card border-t-4 border-purple-400 h-full flex flex-col justify-between p-3">
                     <p class="text-[10px] text-slate-400 mb-2">促进非性接触的亲密感。</p>
-                    <button onclick="runGemini('warmth')" class="w-full bg-purple-500 text-white font-bold py-2 rounded-lg text-xs shadow-sm mt-auto">
-                        今日任务
+                    <button onclick="runGemini('warmth')" class="w-full bg-purple-500 text-white font-bold py-2 rounded-lg text-xs shadow-sm mt-auto flex justify-center gap-1">
+                        <span>今日任务</span>
+                        <div id="loading-warmth" class="loading-spinner hidden w-3 h-3 border-2"></div>
                     </button>
                     <div id="result-warmth" class="mt-2 hidden text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100"><div id="content-warmth" class="prose prose-sm"></div></div>
                 </div>
@@ -229,7 +188,7 @@
             </div>
 
             <!-- Distance Tool -->
-            <div class="card border-l-4 border-sky-500 mb-4 opacity-90 hover:opacity-100">
+            <div class="card border-l-4 border-sky-500 mb-4 opacity-90 hover:opacity-100 transition-opacity">
                 <div class="flex justify-between mb-2">
                     <h3 class="font-bold text-sm text-sky-800">✈️ 异地传情</h3>
                 </div>
@@ -238,12 +197,15 @@
                     <option value="miss_you_night">🌙 晚上想你 (暧昧)</option>
                     <option value="house_chores">🧹 家里已打扫 (安心)</option>
                 </select>
-                <button onclick="runGemini('distance')" class="w-full bg-sky-600 text-white font-bold py-2 rounded text-xs shadow-sm">生成传情信息</button>
+                <button onclick="runGemini('distance')" class="w-full bg-sky-600 text-white font-bold py-2 rounded text-xs shadow-sm flex justify-center gap-1">
+                    <span>生成传情信息</span>
+                    <div id="loading-distance" class="loading-spinner hidden w-3 h-3 border-2"></div>
+                </button>
                 <div id="result-distance" class="mt-2 hidden text-sm text-slate-600 bg-slate-50 p-2 rounded"><div id="content-distance"></div></div>
             </div>
 
             <!-- Reunion Tool -->
-            <div class="card border-l-4 border-indigo-500 opacity-90 hover:opacity-100">
+            <div class="card border-l-4 border-indigo-500 opacity-90 hover:opacity-100 transition-opacity">
                 <div class="flex justify-between mb-2">
                     <h3 class="font-bold text-sm text-indigo-800">🎡 31号策划</h3>
                 </div>
@@ -252,7 +214,10 @@
                     <option value="dinner_talk">🍽️ 晚餐话题</option>
                     <option value="movie_touch">🎬 看戏小动作</option>
                 </select>
-                <button onclick="runGemini('reunion')" class="w-full bg-indigo-600 text-white font-bold py-2 rounded text-xs shadow-sm">生成重逢建议</button>
+                <button onclick="runGemini('reunion')" class="w-full bg-indigo-600 text-white font-bold py-2 rounded text-xs shadow-sm flex justify-center gap-1">
+                    <span>生成重逢建议</span>
+                    <div id="loading-reunion" class="loading-spinner hidden w-3 h-3 border-2"></div>
+                </button>
                 <div id="result-reunion" class="mt-2 hidden text-sm text-slate-600 bg-slate-50 p-2 rounded"><div id="content-reunion" class="prose prose-sm"></div></div>
             </div>
         </section>
@@ -260,166 +225,22 @@
     </main>
 
     <script>
-        // --- CONFIGURATION ---
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // --- 0. HARDCODED API KEY (Permanent) ---
+        const API_KEY = "AIzaSyClDjCuLE2RpWL5v1A2DQQ0j2gnFd6p_Vg";
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        let globalApiKey = localStorage.getItem('local_gemini_key'); // Local backup
-        let currentUser = null;
-
-        // --- 1. AUTH & INIT LOGIC ---
-        // Enhanced to strictly wait for auth before syncing
-        
-        // Listen to Auth State
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user;
-                updateStatus("online");
-                // Attempt auto-login if credentials exist
-                const savedSyncId = localStorage.getItem('harmony_sync_id');
-                const savedSyncPin = localStorage.getItem('harmony_sync_pin');
-                if (savedSyncId && savedSyncPin) {
-                    attemptCloudSync(savedSyncId, savedSyncPin, true);
-                } else {
-                    showAuthModal();
-                }
-            } else {
-                currentUser = null;
-                updateStatus("connecting");
-                // Explicitly sign in anonymously
-                auth.signInAnonymously().catch((error) => {
-                    console.error("Auth failed:", error);
-                    updateStatus("error");
-                });
-            }
-        });
-
-        function showAuthModal() {
-            document.getElementById('auth-modal').classList.remove('hidden');
-            if (!globalApiKey) {
-                document.getElementById('key-section').classList.remove('hidden');
-            }
-        }
-        
-        function closeAuthModal() {
-            document.getElementById('auth-modal').classList.add('hidden');
-        }
-
-        async function handleCloudSync() {
-            // Guard Rule 3: Auth check
-            if (!currentUser) {
-                document.getElementById('auth-msg').innerText = "正在建立安全连接，请稍等...";
-                return;
-            }
-
-            const syncId = document.getElementById('sync-id').value.trim();
-            const pin = document.getElementById('sync-pin').value.trim();
-            const keyInput = document.getElementById('api-key-input').value.trim();
-            const msg = document.getElementById('auth-msg');
-            
-            if (!syncId || !pin) return msg.innerText = "请输入账号和密码";
-            msg.innerText = "处理中...";
-
-            try {
-                // Rule 1: Use correct public path
-                const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('sync_users').doc(syncId);
-                const docSnap = await docRef.get();
-
-                if (docSnap.exists) {
-                    // Login
-                    const data = docSnap.data();
-                    if (data.pin === pin) {
-                        globalApiKey = data.apiKey;
-                        localStorage.setItem('local_gemini_key', globalApiKey);
-                        localStorage.setItem('harmony_sync_id', syncId);
-                        localStorage.setItem('harmony_sync_pin', pin);
-                        msg.innerText = "同步成功！";
-                        msg.className = "text-center text-xs text-green-500 h-4";
-                        setTimeout(closeAuthModal, 1000);
-                    } else {
-                        msg.innerText = "密码错误";
-                        msg.className = "text-center text-xs text-red-500 h-4";
-                    }
-                } else {
-                    // Register
-                    if (!keyInput && !globalApiKey) {
-                        document.getElementById('key-section').classList.remove('hidden');
-                        return msg.innerText = "新账号：请输入 API Key 以保存";
-                    }
-
-                    const keyToSave = keyInput || globalApiKey;
-                    if (!keyToSave.startsWith("AIza")) return msg.innerText = "API Key 格式错误";
-
-                    await docRef.set({
-                        pin: pin,
-                        apiKey: keyToSave,
-                        createdAt: new Date().toISOString()
-                    });
-                    
-                    globalApiKey = keyToSave;
-                    localStorage.setItem('local_gemini_key', globalApiKey);
-                    localStorage.setItem('harmony_sync_id', syncId);
-                    localStorage.setItem('harmony_sync_pin', pin);
-                    
-                    msg.innerText = "注册成功！";
-                    msg.className = "text-center text-xs text-green-500 h-4";
-                    setTimeout(closeAuthModal, 1000);
-                }
-            } catch (e) {
-                console.error(e);
-                msg.innerText = "操作失败，请重试";
-            }
-        }
-
-        function attemptCloudSync(id, pin, silent) {
-            if (!currentUser) return; // Wait for auth listener
-            
-            const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('sync_users').doc(id);
-            docRef.get().then(doc => {
-                if (doc.exists && doc.data().pin === pin) {
-                    globalApiKey = doc.data().apiKey;
-                    localStorage.setItem('local_gemini_key', globalApiKey);
-                } else if (!silent) {
-                    showAuthModal();
-                }
-            }).catch(err => console.error("Sync check failed", err));
-        }
-
-        function updateStatus(state) {
-            const ind = document.getElementById('status-indicator');
-            const txt = document.getElementById('status-text');
-            if (state === "online") {
-                ind.className = "w-2 h-2 rounded-full bg-green-500";
-                txt.innerText = "在线";
-            } else if (state === "connecting") {
-                ind.className = "w-2 h-2 rounded-full bg-orange-400 animate-pulse";
-                txt.innerText = "连接中...";
-            } else {
-                ind.className = "w-2 h-2 rounded-full bg-red-500";
-                txt.innerText = "离线";
-            }
-        }
-
-        // --- 2. GEMINI AI LOGIC ---
+        // --- 1. GEMINI LOGIC ---
         async function runGemini(type) {
-            if (!globalApiKey) {
-                showAuthModal();
-                return;
-            }
-
-            const loadingBtn = document.querySelector(`button[onclick="runGemini('${type}')"]`);
-            const originalText = loadingBtn.innerHTML;
+            // UI Helpers
+            const loadingSpinner = document.getElementById(`loading-${type}`);
+            const btn = loadingSpinner.parentElement;
             const resultBox = document.getElementById(`result-${type}`);
             const contentBox = document.getElementById(`content-${type}`);
 
-            loadingBtn.innerHTML = '<div class="loading-spinner"></div> AI 思考中...';
-            loadingBtn.disabled = true;
+            loadingSpinner.classList.remove('hidden');
+            btn.disabled = true;
             resultBox.classList.add('hidden');
 
+            // --- PROMPTS ---
             let systemPrompt = "你是一位专业的两性关系与心理学专家。用户是38岁丈夫，深爱37岁妻子（慢热型），有6岁儿子。";
             let prompt = "";
 
@@ -463,14 +284,18 @@
                 prompt = `31号Sunway Carnival接妻。目标：${g}。给建议。`;
             }
 
+            // --- FETCH ---
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${globalApiKey}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
                 });
                 const data = await response.json();
+                
+                if (data.error) throw new Error(data.error.message);
+
                 const mdText = data.candidates?.[0]?.content?.parts?.[0]?.text || "AI 暂时沉默";
 
                 if (type === 'deeptalk') contentBox.innerText = mdText;
@@ -478,10 +303,11 @@
 
                 resultBox.classList.remove('hidden');
             } catch (e) {
-                alert("网络或Key错误，请检查云端同步");
+                console.error(e);
+                alert("AI 请求失败，请检查网络");
             } finally {
-                loadingBtn.innerHTML = originalText;
-                loadingBtn.disabled = false;
+                loadingSpinner.classList.add('hidden');
+                btn.disabled = false;
             }
         }
 
