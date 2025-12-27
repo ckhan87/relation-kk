@@ -3,331 +3,496 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harmony Ultimate (全能版)</title>
+    <title>Harmony V7.1 (Cloud Sync)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Firebase SDKs (Compat version for broader support) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans SC', sans-serif; background-color: #F0F9FF; color: #334155; -webkit-tap-highlight-color: transparent; }
-        .card { background-color: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); padding: 1.25rem; margin-bottom: 1rem; transition: all 0.3s ease; border: 1px solid #e2e8f0; }
-        .card:active { transform: scale(0.99); }
-        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #0ea5e9; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        body { font-family: 'Noto Sans SC', sans-serif; background-color: #F8FAFC; color: #334155; -webkit-tap-highlight-color: transparent; }
+        .card { background-color: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 1.25rem; margin-bottom: 1rem; border: 1px solid #f1f5f9; transition: all 0.2s; }
+        .card:active { transform: scale(0.99); background-color: #fafafa; }
+        .btn-primary { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white; font-weight: bold; padding: 0.75rem; border-radius: 0.5rem; width: 100%; transition: opacity 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-primary:active { opacity: 0.9; transform: translateY(1px); }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 5px;}
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Markdown Styles */
-        .prose h3 { color: #0f172a; font-weight: 700; margin-top: 1em; margin-bottom: 0.5em; font-size: 1em; }
-        .prose ul { list-style-type: disc; padding-left: 1.2em; margin-bottom: 0.5em; }
-        .prose li { margin-bottom: 0.2em; }
-        .prose strong { color: #be185d; font-weight: 600; }
-        .prose p { margin-bottom: 0.5em; line-height: 1.5; }
         
-        /* Custom Gradients for headers */
-        .header-special { background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); } /* Blue */
-        .header-daily { background: linear-gradient(135deg, #db2777 0%, #e11d48 100%); } /* Pink/Rose */
-        
-        #apiKeyModal { backdrop-filter: blur(5px); }
+        /* Markdown Styling */
+        .prose h3 { color: #be185d; font-weight: 700; margin-top: 0.8em; margin-bottom: 0.4em; font-size: 0.95em; }
+        .prose strong { color: #1e293b; font-weight: 700; background: linear-gradient(to right, #fecdd3 0%, #fecdd3 100%); background-position: 0 90%; background-size: 100% 30%; background-repeat: no-repeat;}
+        .prose ul { list-style-type: none; padding-left: 0; margin-bottom: 0.5em; font-size: 0.9em; }
+        .prose li::before { content: "• "; color: #be185d; font-weight: bold; }
+        .prose p { margin-bottom: 0.5em; font-size: 0.9em; line-height: 1.6; }
+
+        /* Login Modal */
+        #auth-modal { backdrop-filter: blur(8px); background-color: rgba(0,0,0,0.6); }
     </style>
 </head>
-<body class="antialiased pb-24">
+<body class="pb-24">
 
-    <!-- Navbar -->
-    <header class="bg-slate-900 text-white py-3 shadow-lg sticky top-0 z-50">
-        <div class="max-w-md mx-auto px-4 flex justify-between items-center">
-            <div>
-                <h1 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-rose-400">Harmony Ultimate</h1>
-                <p class="text-slate-400 text-[10px] mt-0.5">全功能融合版 V5.0</p>
+    <!-- Header -->
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 px-4 py-3 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-2">
+            <h1 class="font-bold text-slate-800 text-lg tracking-tight">Harmony V7.1</h1>
+            <div id="status-container" class="flex items-center gap-1">
+                <span id="status-indicator" class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+                <span id="status-text" class="text-[10px] text-slate-400">连接中...</span>
             </div>
-            <button onclick="resetKey()" class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded border border-slate-700">
-                🔑 设置 Key
-            </button>
         </div>
+        <button onclick="showAuthModal()" class="text-xs bg-slate-100 text-slate-600 border border-slate-200 px-3 py-1.5 rounded-full font-medium">
+            ☁️ 云端同步
+        </button>
     </header>
 
-    <main class="max-w-md mx-auto px-4 mt-4 space-y-6">
-
-        <!-- 1. Special Event Section (Sunway Carnival) -->
-        <section>
-            <div class="flex items-center gap-2 mb-3">
-                <span class="text-xl">🌟</span>
-                <h2 class="text-sm font-bold text-slate-600 uppercase tracking-wider">当前任务：重逢倒计时</h2>
+    <!-- AUTH MODAL (Cloud Sync) -->
+    <div id="auth-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-2xl w-11/12 max-w-sm shadow-2xl transform transition-all scale-100">
+            <div class="text-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">☁️ 云端同步设置</h3>
+                <p class="text-xs text-slate-500 mt-1">在一台设备保存，跨设备自动同步 API Key</p>
             </div>
             
-            <div class="bg-gradient-to-r from-sky-600 to-indigo-600 rounded-2xl p-5 text-white shadow-lg mb-4">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-base font-bold">31号 Sunway Carnival</h2>
-                        <p class="text-sky-100 text-xs mt-1">目标: 让她很想我 & 完美约会</p>
-                    </div>
-                    <div class="text-2xl font-mono font-bold bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm" id="countdownTimer">
-                        --天
-                    </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-600 ml-1">同步账号 (自定义):</label>
+                    <input type="text" id="sync-id" placeholder="例: David_Love_2025" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-600 ml-1">同步密码:</label>
+                    <input type="password" id="sync-pin" placeholder="设置一个简单密码" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                </div>
+                
+                <div id="key-section" class="hidden bg-yellow-50 p-3 rounded-xl border border-yellow-100">
+                    <label class="text-xs font-bold text-yellow-800 ml-1">🔑 Gemini API Key:</label>
+                    <input type="password" id="api-key-input" placeholder="粘贴 AIza 开头的 Key" class="w-full p-2 border border-yellow-200 rounded-lg bg-white text-xs mt-1">
+                    <p class="text-[10px] text-yellow-600 mt-1">首次使用需输入，之后自动同步。</p>
+                </div>
+
+                <div class="flex gap-3 mt-2">
+                    <button onclick="closeAuthModal()" class="flex-1 py-3 text-slate-500 font-bold text-sm">取消</button>
+                    <button onclick="handleCloudSync()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg hover:bg-blue-700">确认 / 同步</button>
+                </div>
+                <p id="auth-msg" class="text-center text-xs text-red-500 h-4"></p>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-md mx-auto px-4 mt-6 space-y-8">
+
+        <!-- 1. Message (Enhanced) -->
+        <section>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">💌</span>
+                <div>
+                    <h2 class="font-bold text-slate-800 text-lg">暖心信使 (Message)</h2>
+                    <p class="text-[10px] text-slate-400">含行动指南</p>
                 </div>
             </div>
-
-            <!-- Tool: Distance Spark -->
-            <div class="card border-l-4 border-sky-500 bg-sky-50/50">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-base text-sky-800">✈️ 异地传情 (27-30号)</h3>
-                </div>
-                <p class="text-xs text-slate-500 mb-3">展示高价值，制造“家里空荡荡”的思念感。</p>
-                <select id="distanceContext" class="w-full p-2.5 border border-slate-200 rounded-lg mb-3 text-sm bg-white focus:border-sky-500 outline-none">
-                    <option value="son_update">📸 儿子很乖 (展示稳重奶爸)</option>
-                    <option value="miss_you_night">🌙 晚上一个人睡 (制造暧昧)</option>
-                    <option value="house_chores">🧹 家里已打扫 (让她安心)</option>
-                    <option value="countdown">⏳ 倒数期待 (迎接女王)</option>
+            <div class="card border-l-4 border-pink-500 bg-gradient-to-br from-white to-pink-50/30">
+                <select id="msgContext" class="w-full p-3 border border-slate-200 rounded-xl mb-3 text-sm bg-white outline-none focus:border-pink-500">
+                    <option value="post_sex_cold">🛌 贤者时间：打破冷淡，建立连接</option>
+                    <option value="wife_stressed_work">🤯 她工作压力大：给予支持</option>
+                    <option value="wfh_lunch">🏠 WFH 午间：打破室友感</option>
+                    <option value="apology_ignore">😓 忙碌忽略了她：真诚补救</option>
+                    <option value="random_love">💖 没什么原因：日常撩拨</option>
                 </select>
-                <button onclick="runAI('distance')" class="w-full bg-sky-600 text-white font-bold py-2.5 rounded-lg text-sm shadow active:bg-sky-700 flex justify-center items-center gap-2">
-                    <span>生成传情信息</span>
-                    <div id="loading-distance" class="loading-spinner hidden"></div>
+                <button onclick="runGemini('message')" class="btn-primary bg-pink-600 shadow-pink-200">
+                    ✨ 生成话术 + 配套行动
                 </button>
-                <div id="result-distance" class="mt-3 hidden p-3 bg-white rounded text-sm text-slate-700 border border-sky-100 relative shadow-sm"></div>
-            </div>
-
-            <!-- Tool: Reunion Planner -->
-            <div class="card border-l-4 border-indigo-500 bg-indigo-50/50">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-base text-indigo-800">📅 31号重逢策划</h3>
+                <div id="result-message" class="mt-4 hidden bg-white p-4 rounded-xl border border-pink-100 text-sm shadow-sm relative">
+                    <div id="content-message" class="prose prose-sm"></div>
                 </div>
-                <p class="text-xs text-slate-500 mb-3">带着儿子怎么浪漫？Sunway Carnival 攻略。</p>
-                <select id="reunionGoal" class="w-full p-2.5 border border-slate-200 rounded-lg mb-3 text-sm bg-white focus:border-indigo-500 outline-none">
-                    <option value="first_moment">👋 见面第一刻 (话术/礼物)</option>
-                    <option value="dinner_talk">🍽️ 晚餐话题 (聊什么)</option>
-                    <option value="movie_touch">🎬 看戏小动作 (黑暗中的亲密)</option>
-                    <option value="night_plan">🛌 回家后的激情 (流程安排)</option>
-                </select>
-                <button onclick="runAI('reunion')" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-lg text-sm shadow active:bg-indigo-700 flex justify-center items-center gap-2">
-                    <span>策划完美重逢</span>
-                    <div id="loading-reunion" class="loading-spinner hidden"></div>
-                </button>
-                <div id="result-reunion" class="mt-3 hidden p-3 bg-white rounded text-xs text-slate-700 border border-indigo-100 prose prose-sm max-w-none shadow-sm"></div>
             </div>
         </section>
 
-        <!-- 2. Daily Core Section (The Classics) -->
+        <!-- 2. Deep Talk -->
         <section>
-            <div class="flex items-center gap-2 mb-3 mt-8">
-                <span class="text-xl">❤️</span>
-                <h2 class="text-sm font-bold text-slate-600 uppercase tracking-wider">日常核心 (你最爱的)</h2>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">🗣️</span>
+                <h2 class="font-bold text-slate-800 text-lg">深度话题 (Deep Talk)</h2>
             </div>
-
-            <!-- Tool: Intimacy Booster (Enhanced) -->
-            <div class="card border-l-4 border-rose-600 bg-rose-50/50">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-base text-rose-800">🔥 Booster (亲密升级)</h3>
-                    <span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded font-bold">高阶</span>
-                </div>
-                <p class="text-xs text-slate-500 mb-3">解决性爱前中后的核心痛点。</p>
-                <select id="boosterGoal" class="w-full p-2.5 border border-slate-200 rounded-lg mb-3 text-sm bg-white focus:border-rose-500 outline-none">
-                    <option value="aftercare">🛌 性爱后：如何让她心满？(Aftercare)</option>
-                    <option value="during_sex_talk">💬 性爱中：聊什么拉近关系？</option>
-                    <option value="passive_to_active">💃 长期：如何让她主动？(Seduction)</option>
+            <div class="card border-l-4 border-teal-500 bg-gradient-to-br from-white to-teal-50/30">
+                <select id="topicVibe" class="w-full p-3 border border-slate-200 rounded-xl mb-3 text-sm bg-white outline-none focus:border-teal-500">
+                    <option value="relaxed">🌙 睡前轻松 (Fun & Light)</option>
+                    <option value="nostalgic">📸 怀旧回忆 (Memory Lane)</option>
+                    <option value="future">🚀 未来梦想 (Dreams)</option>
+                    <option value="appreciation">🙏 互相感谢 (Gratitude)</option>
                 </select>
-                <button onclick="runAI('booster')" class="w-full bg-rose-600 text-white font-bold py-2.5 rounded-lg text-sm shadow active:bg-rose-700 flex justify-center items-center gap-2">
-                    <span>获取大师建议</span>
-                    <div id="loading-booster" class="loading-spinner hidden"></div>
+                <button onclick="runGemini('deeptalk')" class="btn-primary bg-teal-600 shadow-teal-200">
+                    ✨ 获取灵魂话题
                 </button>
-                <div id="result-booster" class="mt-3 hidden p-3 bg-white rounded text-xs text-slate-700 border border-rose-100 prose prose-sm max-w-none shadow-sm"></div>
-            </div>
-
-            <!-- Tool: Message (Full Version) -->
-            <div class="card border-l-4 border-pink-500 bg-pink-50/50">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-base text-pink-800">💌 Message (暖心信使)</h3>
-                </div>
-                <p class="text-xs text-slate-500 mb-3">针对“贤者时间”或忙碌期，自动生成不油腻的关心。</p>
-                <select id="msgContext" class="w-full p-2.5 border border-slate-200 rounded-lg mb-3 text-sm bg-white focus:border-pink-500 outline-none">
-                    <option value="post_sex_cold">昨晚亲热完，今天没感觉 (贤者时间)</option>
-                    <option value="wife_stressed_work">她工作压力大，给鼓励</option>
-                    <option value="wfh_lunch">WFH在家，约午间微约会</option>
-                    <option value="apology_ignore">忙工作忽略了她，想补救</option>
-                    <option value="random_love">没什么特别，就是想撩一下</option>
-                </select>
-                <button onclick="runAI('message')" class="w-full bg-pink-600 text-white font-bold py-2.5 rounded-lg text-sm shadow active:bg-pink-700 flex justify-center items-center gap-2">
-                    <span>生成暖心短信</span>
-                    <div id="loading-message" class="loading-spinner hidden"></div>
-                </button>
-                <div id="result-message" class="mt-3 hidden p-3 bg-white rounded text-sm text-slate-700 border border-pink-100 relative shadow-sm italic">
-                    <button onclick="copyText('result-message')" class="absolute top-2 right-2 text-xs text-pink-500 font-bold">复制</button>
-                    <p id="content-message"></p>
-                </div>
-            </div>
-
-            <!-- Tool: Deep Talk (Full Version) -->
-            <div class="card border-l-4 border-teal-500 bg-teal-50/50">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-base text-teal-800">🗣️ Deep Talk (深度话题)</h3>
-                </div>
-                <p class="text-xs text-slate-500 mb-3">除了孩子和钱还能聊什么？高质量聊天库。</p>
-                <select id="topicVibe" class="w-full p-2.5 border border-slate-200 rounded-lg mb-3 text-sm bg-white focus:border-teal-500 outline-none">
-                    <option value="relaxed">轻松/睡前 (Fun & Light)</option>
-                    <option value="nostalgic">怀旧/回忆 (Memory Lane)</option>
-                    <option value="future">未来/梦想 (Dreams)</option>
-                    <option value="appreciation">互相感谢 (Gratitude)</option>
-                </select>
-                <button onclick="runAI('deeptalk')" class="w-full bg-teal-600 text-white font-bold py-2.5 rounded-lg text-sm shadow active:bg-teal-700 flex justify-center items-center gap-2">
-                    <span>获取话题</span>
-                    <div id="loading-deeptalk" class="loading-spinner hidden"></div>
-                </button>
-                <div id="result-deeptalk" class="mt-3 hidden p-4 bg-white rounded text-sm text-slate-700 border border-teal-100 text-center font-medium shadow-sm">
+                <div id="result-deeptalk" class="mt-4 hidden bg-white p-4 rounded-xl border border-teal-100 text-sm text-center font-medium shadow-sm">
                     <p id="content-deeptalk"></p>
                 </div>
             </div>
         </section>
 
-        <!-- 3. Rhythm Chart (Reference) -->
-        <section class="opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
-            <h3 class="text-xs font-bold text-slate-400 text-center mb-2">周间节奏参考 (Weekly Rhythm)</h3>
-            <div class="bg-white rounded-xl p-2 shadow-sm border border-slate-200 h-40">
-                <canvas id="weeklyChart"></canvas>
+        <!-- 3. Booster -->
+        <section>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">🔥</span>
+                <h2 class="font-bold text-slate-800 text-lg">亲密升级 (Booster)</h2>
+            </div>
+            <div class="card border-l-4 border-rose-600 bg-gradient-to-br from-white to-rose-50/30">
+                <select id="boosterGoal" class="w-full p-3 border border-slate-200 rounded-xl mb-3 text-sm bg-white outline-none focus:border-rose-500">
+                    <option value="aftercare">🛌 性爱后：让心更饱满 (Aftercare)</option>
+                    <option value="during_sex_talk">💬 性爱中：聊什么拉近距离？</option>
+                    <option value="passive_to_active">💃 长期：如何让她变主动？</option>
+                </select>
+                <button onclick="runGemini('booster')" class="btn-primary bg-rose-600 shadow-rose-200">
+                    ✨ 获取大师建议
+                </button>
+                <div id="result-booster" class="mt-4 hidden bg-white p-4 rounded-xl border border-rose-100 text-sm shadow-sm">
+                    <div id="content-booster" class="prose prose-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Apology (New Feature) -->
+        <section>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">🚑</span>
+                <h2 class="font-bold text-slate-800 text-lg">紧急救火 (Apology)</h2>
+            </div>
+            <div class="card border-l-4 border-orange-500 bg-gradient-to-br from-white to-orange-50/30">
+                <p class="text-xs text-slate-500 mb-3 ml-1">做错事惹她生气了？快速止损。</p>
+                <select id="apologyType" class="w-full p-3 border border-slate-200 rounded-xl mb-3 text-sm bg-white outline-none focus:border-orange-500">
+                    <option value="forgot_task">🧠 忘记交代的事 (健忘)</option>
+                    <option value="too_slow">🐢 动作太慢/拖延</option>
+                    <option value="bad_temper">💥 脾气坏/语气重</option>
+                    <option value="ignored_msg">🔕 忽略信息/没回电话</option>
+                </select>
+                <button onclick="runGemini('apology')" class="btn-primary bg-orange-600 shadow-orange-200">
+                    ✨ 求生指南 (话术+补偿)
+                </button>
+                <div id="result-apology" class="mt-4 hidden bg-white p-4 rounded-xl border border-orange-100 text-sm shadow-sm">
+                    <div id="content-apology" class="prose prose-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Surprise & Warmth (New Features) -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Surprise -->
+            <section>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🎁</span>
+                    <h2 class="font-bold text-slate-800 text-sm">每日惊喜</h2>
+                </div>
+                <div class="card border-t-4 border-yellow-500 h-full flex flex-col justify-between p-3">
+                    <select id="surpriseContext" class="w-full p-2 border border-slate-200 rounded-lg mb-2 text-xs bg-white outline-none">
+                        <option value="at_home">🏠 在家</option>
+                        <option value="digital">📱 手机/线上</option>
+                        <option value="food">🍩 食物</option>
+                    </select>
+                    <button onclick="runGemini('surprise')" class="w-full bg-yellow-500 text-white font-bold py-2 rounded-lg text-xs shadow-sm">
+                        生成点子
+                    </button>
+                    <div id="result-surprise" class="mt-2 hidden text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100"><div id="content-surprise" class="prose prose-sm"></div></div>
+                </div>
+            </section>
+            
+            <!-- Warmth -->
+            <section>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🥰</span>
+                    <h2 class="font-bold text-slate-800 text-sm">每日温存</h2>
+                </div>
+                <div class="card border-t-4 border-purple-400 h-full flex flex-col justify-between p-3">
+                    <p class="text-[10px] text-slate-400 mb-2">促进非性接触的亲密感。</p>
+                    <button onclick="runGemini('warmth')" class="w-full bg-purple-500 text-white font-bold py-2 rounded-lg text-xs shadow-sm mt-auto">
+                        今日任务
+                    </button>
+                    <div id="result-warmth" class="mt-2 hidden text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100"><div id="content-warmth" class="prose prose-sm"></div></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 6. Distance & Reunion (Bottom Section) -->
+        <section class="border-t border-slate-200 pt-6 mt-8">
+            <div class="flex items-center gap-2 mb-4 justify-center opacity-70">
+                <span class="text-xl">📅</span>
+                <h2 class="font-bold text-slate-500">异地 (27-30) & 重逢 (31)</h2>
+            </div>
+
+            <!-- Countdown Banner -->
+            <div class="bg-slate-800 rounded-xl p-4 text-white shadow-lg mb-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-200">31号 Sunway Carnival</h2>
+                    <p class="text-[10px] text-slate-400">目标: 让她很想我</p>
+                </div>
+                <div class="text-xl font-mono font-bold text-sky-400" id="countdownTimer">--天</div>
+            </div>
+
+            <!-- Distance Tool -->
+            <div class="card border-l-4 border-sky-500 mb-4 opacity-90 hover:opacity-100">
+                <div class="flex justify-between mb-2">
+                    <h3 class="font-bold text-sm text-sky-800">✈️ 异地传情</h3>
+                </div>
+                <select id="distanceContext" class="w-full p-2 border border-slate-200 rounded mb-2 text-sm bg-white">
+                    <option value="son_update">📸 儿子很乖 (展示稳重)</option>
+                    <option value="miss_you_night">🌙 晚上想你 (暧昧)</option>
+                    <option value="house_chores">🧹 家里已打扫 (安心)</option>
+                </select>
+                <button onclick="runGemini('distance')" class="w-full bg-sky-600 text-white font-bold py-2 rounded text-xs shadow-sm">生成传情信息</button>
+                <div id="result-distance" class="mt-2 hidden text-sm text-slate-600 bg-slate-50 p-2 rounded"><div id="content-distance"></div></div>
+            </div>
+
+            <!-- Reunion Tool -->
+            <div class="card border-l-4 border-indigo-500 opacity-90 hover:opacity-100">
+                <div class="flex justify-between mb-2">
+                    <h3 class="font-bold text-sm text-indigo-800">🎡 31号策划</h3>
+                </div>
+                <select id="reunionGoal" class="w-full p-2 border border-slate-200 rounded mb-2 text-sm bg-white">
+                    <option value="first_moment">👋 见面第一刻</option>
+                    <option value="dinner_talk">🍽️ 晚餐话题</option>
+                    <option value="movie_touch">🎬 看戏小动作</option>
+                </select>
+                <button onclick="runGemini('reunion')" class="w-full bg-indigo-600 text-white font-bold py-2 rounded text-xs shadow-sm">生成重逢建议</button>
+                <div id="result-reunion" class="mt-2 hidden text-sm text-slate-600 bg-slate-50 p-2 rounded"><div id="content-reunion" class="prose prose-sm"></div></div>
             </div>
         </section>
 
     </main>
 
-    <!-- API Key Modal -->
-    <div id="apiKeyModal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-xl w-11/12 max-w-sm shadow-2xl">
-            <h3 class="text-lg font-bold text-slate-800 mb-2">欢迎回来</h3>
-            <p class="text-sm text-slate-600 mb-4">请输入 Google Gemini API Key 以激活所有功能。</p>
-            <input type="password" id="apiKeyInput" placeholder="在此粘贴 Key (AIza...)" class="w-full p-3 border border-slate-300 rounded mb-4 focus:ring-2 focus:ring-sky-500 outline-none text-sm">
-            <button onclick="saveApiKey()" class="w-full bg-slate-900 text-white py-3 rounded-lg font-bold">激活 AI</button>
-            <p class="text-xs text-slate-400 mt-4 text-center">Key 仅保存在你的手机上，安全隐私。</p>
-        </div>
-    </div>
-
     <script>
-        // --- 1. System Setup & Key Management ---
-        let apiKey = localStorage.getItem("gemini_api_key");
+        // --- CONFIGURATION ---
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        function checkApiKey() {
-            if (!apiKey) document.getElementById("apiKeyModal").classList.remove("hidden");
-        }
-        function saveApiKey() {
-            const input = document.getElementById("apiKeyInput").value.trim();
-            if (input.length < 10) return alert("API Key 格式不对");
-            localStorage.setItem("gemini_api_key", input);
-            apiKey = input;
-            document.getElementById("apiKeyModal").classList.add("hidden");
-            alert("激活成功！");
-        }
-        function resetKey() {
-            localStorage.removeItem("gemini_api_key");
-            location.reload();
-        }
-        window.onload = function() {
-            checkApiKey();
-            updateCountdown();
-        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        function copyText(elementId) {
-            const text = document.getElementById(elementId.replace('result-', 'content-')).innerText;
-            navigator.clipboard.writeText(text).then(() => alert("已复制！"));
+        let globalApiKey = localStorage.getItem('local_gemini_key'); // Local backup
+        let currentUser = null;
+
+        // --- 1. AUTH & INIT LOGIC ---
+        // Enhanced to strictly wait for auth before syncing
+        
+        // Listen to Auth State
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                updateStatus("online");
+                // Attempt auto-login if credentials exist
+                const savedSyncId = localStorage.getItem('harmony_sync_id');
+                const savedSyncPin = localStorage.getItem('harmony_sync_pin');
+                if (savedSyncId && savedSyncPin) {
+                    attemptCloudSync(savedSyncId, savedSyncPin, true);
+                } else {
+                    showAuthModal();
+                }
+            } else {
+                currentUser = null;
+                updateStatus("connecting");
+                // Explicitly sign in anonymously
+                auth.signInAnonymously().catch((error) => {
+                    console.error("Auth failed:", error);
+                    updateStatus("error");
+                });
+            }
+        });
+
+        function showAuthModal() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            if (!globalApiKey) {
+                document.getElementById('key-section').classList.remove('hidden');
+            }
+        }
+        
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
         }
 
-        // --- 2. AI Logic Controller ---
-        async function runAI(type) {
-            if (!apiKey) { checkApiKey(); return; }
+        async function handleCloudSync() {
+            // Guard Rule 3: Auth check
+            if (!currentUser) {
+                document.getElementById('auth-msg').innerText = "正在建立安全连接，请稍等...";
+                return;
+            }
+
+            const syncId = document.getElementById('sync-id').value.trim();
+            const pin = document.getElementById('sync-pin').value.trim();
+            const keyInput = document.getElementById('api-key-input').value.trim();
+            const msg = document.getElementById('auth-msg');
             
-            // UI Helpers
-            const loading = document.getElementById(`loading-${type}`);
+            if (!syncId || !pin) return msg.innerText = "请输入账号和密码";
+            msg.innerText = "处理中...";
+
+            try {
+                // Rule 1: Use correct public path
+                const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('sync_users').doc(syncId);
+                const docSnap = await docRef.get();
+
+                if (docSnap.exists) {
+                    // Login
+                    const data = docSnap.data();
+                    if (data.pin === pin) {
+                        globalApiKey = data.apiKey;
+                        localStorage.setItem('local_gemini_key', globalApiKey);
+                        localStorage.setItem('harmony_sync_id', syncId);
+                        localStorage.setItem('harmony_sync_pin', pin);
+                        msg.innerText = "同步成功！";
+                        msg.className = "text-center text-xs text-green-500 h-4";
+                        setTimeout(closeAuthModal, 1000);
+                    } else {
+                        msg.innerText = "密码错误";
+                        msg.className = "text-center text-xs text-red-500 h-4";
+                    }
+                } else {
+                    // Register
+                    if (!keyInput && !globalApiKey) {
+                        document.getElementById('key-section').classList.remove('hidden');
+                        return msg.innerText = "新账号：请输入 API Key 以保存";
+                    }
+
+                    const keyToSave = keyInput || globalApiKey;
+                    if (!keyToSave.startsWith("AIza")) return msg.innerText = "API Key 格式错误";
+
+                    await docRef.set({
+                        pin: pin,
+                        apiKey: keyToSave,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    globalApiKey = keyToSave;
+                    localStorage.setItem('local_gemini_key', globalApiKey);
+                    localStorage.setItem('harmony_sync_id', syncId);
+                    localStorage.setItem('harmony_sync_pin', pin);
+                    
+                    msg.innerText = "注册成功！";
+                    msg.className = "text-center text-xs text-green-500 h-4";
+                    setTimeout(closeAuthModal, 1000);
+                }
+            } catch (e) {
+                console.error(e);
+                msg.innerText = "操作失败，请重试";
+            }
+        }
+
+        function attemptCloudSync(id, pin, silent) {
+            if (!currentUser) return; // Wait for auth listener
+            
+            const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('sync_users').doc(id);
+            docRef.get().then(doc => {
+                if (doc.exists && doc.data().pin === pin) {
+                    globalApiKey = doc.data().apiKey;
+                    localStorage.setItem('local_gemini_key', globalApiKey);
+                } else if (!silent) {
+                    showAuthModal();
+                }
+            }).catch(err => console.error("Sync check failed", err));
+        }
+
+        function updateStatus(state) {
+            const ind = document.getElementById('status-indicator');
+            const txt = document.getElementById('status-text');
+            if (state === "online") {
+                ind.className = "w-2 h-2 rounded-full bg-green-500";
+                txt.innerText = "在线";
+            } else if (state === "connecting") {
+                ind.className = "w-2 h-2 rounded-full bg-orange-400 animate-pulse";
+                txt.innerText = "连接中...";
+            } else {
+                ind.className = "w-2 h-2 rounded-full bg-red-500";
+                txt.innerText = "离线";
+            }
+        }
+
+        // --- 2. GEMINI AI LOGIC ---
+        async function runGemini(type) {
+            if (!globalApiKey) {
+                showAuthModal();
+                return;
+            }
+
+            const loadingBtn = document.querySelector(`button[onclick="runGemini('${type}')"]`);
+            const originalText = loadingBtn.innerHTML;
             const resultBox = document.getElementById(`result-${type}`);
-            const contentBox = document.getElementById(type === 'message' || type === 'deeptalk' ? `content-${type}` : `result-${type}`);
-            
-            loading.classList.remove('hidden');
+            const contentBox = document.getElementById(`content-${type}`);
+
+            loadingBtn.innerHTML = '<div class="loading-spinner"></div> AI 思考中...';
+            loadingBtn.disabled = true;
             resultBox.classList.add('hidden');
 
+            let systemPrompt = "你是一位专业的两性关系与心理学专家。用户是38岁丈夫，深爱37岁妻子（慢热型），有6岁儿子。";
             let prompt = "";
-            let systemInstruction = "";
 
-            // --- Logic Switcher ---
-            if (type === 'distance') {
-                const ctx = document.getElementById('distanceContext').value;
-                systemInstruction = `你是一位高情商丈夫助手。丈夫38岁带6岁儿，妻37岁在外地。目标：展示靠谱（带娃稳）、制造思念（家里空）。风格：温馨、微性感。`;
-                if(ctx === 'son_update') prompt = "发一张儿子照片。夸儿子乖，暗示遗传妈妈，表现我很享受带娃。";
-                if(ctx === 'miss_you_night') prompt = "晚上儿子睡了，我一人在房。表达床太大，安静得不习惯。带暧昧暗示。";
-                if(ctx === 'house_chores') prompt = "我打扫了家里。告诉她回来时家里很舒服，让她在外面放心玩。";
-                if(ctx === 'countdown') prompt = "还有几天她就回来了。像倒数日历一样，表达期待。";
-            }
-            
-            else if (type === 'reunion') {
-                const goal = document.getElementById('reunionGoal').value;
-                systemInstruction = `浪漫策划师。31号丈夫带6岁儿去 Sunway Carnival 接出差回来的妻子。难点：带娃如何浪漫？输出：Markdown，具体建议。`;
-                if(goal === 'first_moment') prompt = "见面第一眼。带什么？第一句话说什么？考虑孩子在场。";
-                if(goal === 'dinner_talk') prompt = "晚餐聊天话题。1.问她经历 2.讲带娃趣事 3.铺垫晚上。";
-                if(goal === 'movie_touch') prompt = "电影院看戏。儿子坐哪？如何利用黑暗肢体接触？";
-                if(goal === 'night_plan') prompt = "回家后。如何从照顾她休息平滑过渡到激情？";
-            }
-
-            else if (type === 'booster') {
-                const goal = document.getElementById('boosterGoal').value;
-                systemInstruction = `顶级两性专家。Markdown格式。`;
-                if(goal === 'aftercare') prompt = "性爱后马上做哪3件小事（言语/动作），让妻子心更饱满？建立Afterglow。";
-                if(goal === 'during_sex_talk') prompt = "性爱中聊什么能拉近灵魂距离？给3个话术。";
-                if(goal === 'passive_to_active') prompt = "如何让她从被动变主动？解释原理并给3个行动建议。";
-            }
-
-            else if (type === 'message') {
+            if (type === 'message') {
                 const ctx = document.getElementById('msgContext').value;
-                systemInstruction = `婚姻专家。丈夫38妻37。生成简短（50字内）真诚微信。口语化。`;
-                prompt = `场景：${ctx}。写一条短信。`;
+                systemPrompt += " 任务：生成一条简短温暖的微信（50字内），并附带一个具体的微行动（Micro-Action）。Markdown格式。";
+                prompt = `场景：${ctx}。输出格式：\n**短信**：...\n\n**行动**：...`;
             }
-
             else if (type === 'deeptalk') {
                 const vibe = document.getElementById('topicVibe').value;
-                systemInstruction = `沟通教练。给结婚7年夫妻一个有趣话题。`;
-                prompt = `氛围：${vibe}。`;
+                prompt = `给一个聊天话题。氛围：${vibe}。打破日常。`;
+            }
+            else if (type === 'booster') {
+                const goal = document.getElementById('boosterGoal').value;
+                systemPrompt += " 任务：大师级性心理建议。Markdown格式。";
+                if(goal === 'aftercare') prompt = "性爱后马上做哪3件小事（言语/动作），建立Afterglow？";
+                if(goal === 'during_sex_talk') prompt = "性爱中聊什么能拉近灵魂距离？给3个话术。";
+                if(goal === 'passive_to_active') prompt = "如何让她从被动变主动？原理+3个建议。";
+            }
+            else if (type === 'apology') {
+                const r = document.getElementById('apologyType').value;
+                systemPrompt += " 任务：做错事道歉与补救。不找借口，真诚。";
+                if(r === 'forgot_task') prompt = "我忘记了她交代的事。求生指南：1.道歉话术 2.补救动作";
+                if(r === 'too_slow') prompt = "我动作太慢让她烦。求生指南：1.安抚话术 2.效率展示";
+                if(r === 'bad_temper') prompt = "我刚才脾气不好。求生指南：1.破冰话术 2.消气举动";
+                if(r === 'ignored_msg') prompt = "忙工作忽略了她信息。求生指南：1.解释 2.补偿";
+            }
+            else if (type === 'surprise') {
+                const c = document.getElementById('surpriseContext').value;
+                prompt = `场景：${c}。给一个低成本高情绪价值的惊喜点子。`;
+            }
+            else if (type === 'warmth') {
+                prompt = "给一个今天可以做的非性接触的温馨小互动/任务。";
+            }
+            else if (type === 'distance') {
+                const c = document.getElementById('distanceContext').value;
+                prompt = `场景：${c}。丈夫带娃，妻在外地。写微信展示靠谱和思念。`;
+            }
+            else if (type === 'reunion') {
+                const g = document.getElementById('reunionGoal').value;
+                prompt = `31号Sunway Carnival接妻。目标：${g}。给建议。`;
             }
 
-            // --- Call API ---
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${globalApiKey}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemInstruction }] } })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
                 });
                 const data = await response.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "AI 思考超时";
+                const mdText = data.candidates?.[0]?.content?.parts?.[0]?.text || "AI 暂时沉默";
 
-                // Render
-                if (type === 'message' || type === 'deeptalk') {
-                    contentBox.innerText = text;
-                } else {
-                    contentBox.innerHTML = marked.parse(text);
-                }
-                
-                loading.classList.add('hidden');
+                if (type === 'deeptalk') contentBox.innerText = mdText;
+                else contentBox.innerHTML = marked.parse(mdText);
+
                 resultBox.classList.remove('hidden');
-
             } catch (e) {
-                alert("网络错误，请检查连接");
-                loading.classList.add('hidden');
+                alert("网络或Key错误，请检查云端同步");
+            } finally {
+                loadingBtn.innerHTML = originalText;
+                loadingBtn.disabled = false;
             }
         }
 
-        // --- 3. Utilities ---
-        function updateCountdown() {
-            const target = new Date("2025-12-31T18:00:00").getTime();
-            const now = new Date().getTime();
-            const diff = target - now;
-            if (diff < 0) { document.getElementById("countdownTimer").innerText = "Enjoy!"; return; }
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            document.getElementById("countdownTimer").innerText = (days + 1) + "天";
+        // Countdown
+        function updateCount() {
+            const t = new Date("2025-12-31T18:00:00").getTime();
+            const n = new Date().getTime();
+            const d = t - n;
+            document.getElementById("countdownTimer").innerText = (d < 0 ? 0 : Math.floor(d / (1000 * 60 * 60 * 24)) + 1) + "天";
         }
-
-        // --- 4. Mini Chart ---
-        new Chart(document.getElementById('weeklyChart'), {
-            type: 'line',
-            data: {
-                labels: ['一', '二', '三', '四', '五', '六', '日'],
-                datasets: [{
-                    label: '机会',
-                    data: [10, 75, 20, 30, 95, 80, 85],
-                    borderColor: '#db2777', borderWidth: 2, tension: 0.4, pointRadius: 0
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
-        });
+        updateCount();
     </script>
 </body>
 </html>
