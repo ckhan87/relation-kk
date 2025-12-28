@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harmony V25 (Force Fix)</title>
+    <title>Harmony V27 (One-Time Key)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -39,10 +39,7 @@
         /* 预览区 */
         .preview-box { margin-top: 1rem; padding: 1rem; border-radius: 0.75rem; background: #f8fafc; border: 1px dashed #cbd5e1; cursor: pointer; position: relative; }
         .click-hint { position: absolute; top: -10px; right: 10px; background: #334155; color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; font-weight: bold; }
-        
-        /* 状态徽章 */
         .offline-badge { position: absolute; bottom: -8px; right: 10px; background: #94a3b8; color: white; font-size: 0.6rem; padding: 1px 6px; border-radius: 4px; font-weight: bold; opacity: 0.8; }
-        .online-badge { position: absolute; bottom: -8px; right: 10px; background: #10b981; color: white; font-size: 0.6rem; padding: 1px 6px; border-radius: 4px; font-weight: bold; opacity: 0.8; }
 
         /* 黄色高亮 */
         mark { background-color: #fef9c3; color: #854d0e; padding: 2px 6px; border-radius: 4px; font-weight: 600; border: 1px dashed #fde047; }
@@ -66,10 +63,15 @@
     <!-- Header -->
     <header class="bg-white/90 backdrop-blur sticky top-0 z-40 border-b border-slate-200 px-5 py-4 flex justify-between items-center">
         <div>
-            <h1 class="font-black text-xl text-slate-800 tracking-tight">Harmony V25</h1>
-            <p class="text-xs text-slate-400 font-medium">Force Updated Key</p>
+            <h1 class="font-black text-xl text-slate-800 tracking-tight">Harmony V27</h1>
+            <p class="text-xs text-slate-400 font-medium">One-Time Setup</p>
         </div>
-        <button onclick="openKeyModal()" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-lg">⚙️ 设置</button>
+        
+        <!-- Status Indicator / Settings Button -->
+        <button onclick="openKeyModal()" id="status-btn" class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full transition hover:bg-slate-200">
+            <span id="status-dot" class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span id="status-text" class="text-xs font-bold text-slate-600">未设置 Key</span>
+        </button>
     </header>
 
     <main class="max-w-md mx-auto px-4 mt-6 space-y-10">
@@ -306,104 +308,130 @@
     <!-- API KEY MODAL -->
     <div id="key-modal" class="hidden modal-bg flex items-center justify-center">
         <div class="bg-white p-6 rounded-2xl w-11/12 max-w-sm shadow-2xl">
-            <h3 class="font-bold text-slate-800 text-lg mb-2">API Key 设置</h3>
-            <p class="text-xs text-slate-500 mb-3">强制使用新 Key。</p>
-            <input type="text" id="custom-api-key" placeholder="AIza..." class="w-full border p-2 rounded-lg mb-4 text-sm" value="AIzaSyBEfwvVoQSoelBlMyWWNRA8FIHlWaAlccc">
+            <h3 class="font-bold text-slate-800 text-lg mb-2">设置 API Key</h3>
+            <p class="text-xs text-slate-500 mb-3">请输入您的 Key。它将永久保存在您的设备上。</p>
+            <input type="text" id="custom-api-key" placeholder="AIza..." class="w-full border p-2 rounded-lg mb-4 text-sm font-mono text-slate-600">
             <div class="flex gap-2">
                 <button onclick="closeKeyModal()" class="flex-1 py-2 text-slate-500">取消</button>
-                <button onclick="saveCustomKey()" class="flex-1 py-2 bg-slate-800 text-white rounded-lg font-bold">保存并重置</button>
+                <button onclick="saveCustomKey()" class="flex-1 py-2 bg-slate-800 text-white rounded-lg font-bold">保存并激活</button>
             </div>
+            <button onclick="clearCustomKey()" class="w-full mt-4 text-xs text-red-400">清除本地缓存</button>
         </div>
     </div>
 
     <script>
-        // --- 1. LOCAL BACKUP LIBRARY (EXPANDED) ---
+        // --- 1. LOCAL BACKUP LIBRARY ---
         const LOCAL_DB = {
             healthcare: [
                 "### 🩸 经期暖心护理 (1)\n* **话术**：<mark>老婆，这几天家务放着我来，你只要负责当我的树懒就好。</mark>\n* **行动**：去 Simpang Ampat 附近的药材店买点 **红糖** 煮姜茶。晚上帮她**热敷小腹**，手搓热了轻轻捂着，比热水袋更有温度。",
+                "### 🩸 经期暖心护理 (2)\n* **话术**：<mark>看你脸色不太好，我心疼。今晚早点睡，孩子我来搞定。</mark>\n* **行动**：给她准备一盆温热水泡脚（加点艾草包更好），促进血液循环缓解痛经。",
                 "### 🦒 颈椎酸痛缓解 (1)\n* **话术**：<mark>是不是脖子又僵了？过来，我的专属技师服务上线了。</mark>\n* **行动**：让她坐在沙发前，你站在后面。用大拇指按揉她的**风池穴**（后脑勺发际线凹陷处）。力度要轻柔渗透，不要死劲按。",
+                "### 🦒 颈椎酸痛缓解 (2)\n* **行动**：用热毛巾敷在她后颈 10 分钟。或者如果你有筋膜枪，换个软头，轻轻打斜方肌（肩膀那块肉），别打骨头。",
                 "### 🚽 便秘舒缓建议\n* **话术**：<mark>是不是肚子不舒服？今晚我们吃清淡点，我陪你。</mark>\n* **饮食**：去买点 **木瓜 (Papaya)** 或 **火龙果**，切好了端给她。这在Penang很容易买到，通便效果一流。",
+                "### 🐡 胃胀气急救\n* **话术**：<mark>肚子涨涨的很难受吧？喝口热的缓缓。</mark>\n* **行动**：帮她涂点如意油/驱风油在肚脐周围，然后用手掌顺时针慢慢揉。冲一杯温热的薄荷茶。",
                 "### 🤕 偏头痛护理\n* **话术**：<mark>老婆，先把眼睛闭上，我在呢。</mark>\n* **行动**：关掉房间的大灯，只留小夜灯。用指腹轻轻梳她的头皮，从前额发际线往后梳，这是最解压的动作。"
             ],
             nopressure: [
-                "### ☀️ 早晨无压微甜\n* **动作**：出门前抱她一下，比平时多停留 3 秒，深呼吸闻一下她的头发。\n* **话术**：<mark>只是想充个电再出门。今晚见。</mark>",
-                "### 🛋️ 沙发上的依偎\n* **动作**：看电视时，把腿给她当枕头，或者只是握着她的手玩手指。\n* **话术**：<mark>就想这样静静跟你待着，不说话也很好。</mark>",
-                "### 🤲 家务时的默契\n* **动作**：经过厨房时，轻轻拍一下她的背（不是屁股！），或者帮她把掉下来的头发别到耳后。\n* **话术**：<mark>老婆辛苦了，这里交给我就好。</mark>"
+                "### ☀️ 早晨无压微甜\n* **动作**：出门前抱她一下，比平时多停留 3 秒，深呼吸闻一下她的头发。\n* **话术**：<mark>只是想充个电再出门。今晚见。</mark>\n* **原理**：只有拥抱没有亲吻，传递的是依恋，不是求欢。",
+                "### 🛋️ 沙发上的依偎\n* **动作**：看电视时，把腿给她当枕头，或者只是握着她的手玩手指。\n* **话术**：<mark>就想这样静静跟你待着，不说话也很好。</mark>\n* **原理**：建立'我们在一起很舒服'的安全区。",
+                "### 🤲 家务时的默契\n* **动作**：经过厨房时，轻轻拍一下她的背（不是屁股！），或者帮她把掉下来的头发别到耳后。\n* **话术**：<mark>老婆辛苦了，这里交给我就好。</mark>",
+                "### 🌙 睡前纯拥抱\n* **动作**：关灯后，从背后轻轻抱住她（大勺子抱小勺子），手放在她胃部（不要摸胸）。\n* **话术**：<mark>安心睡吧，我抱着你。</mark> (然后真的去睡觉，不要乱动)"
             ],
             spark: [
                 "### ✨ 赞美她的魅力\n* **动作**：当她刚洗完澡或者换好衣服时，定定地看她 5 秒钟。\n* **话术**：<mark>有时候看着你，还是会觉得当初我也太幸运了吧。</mark>\n* **原理**：让她觉得自己不仅是妈妈/妻子，还是一个有魅力的女人。",
-                "### 💆 服务式撩拨\n* **动作**：帮她吹头发。手指穿过发丝触碰头皮，偶尔指尖划过她的后颈。\n* **话术**：<mark>闭上眼享受一下，今晚我是你的专属发型师。</mark>"
+                "### 💆 服务式撩拨\n* **动作**：帮她吹头发。手指穿过发丝触碰头皮，偶尔指尖划过她的后颈。\n* **话术**：<mark>闭上眼享受一下，今晚我是你的专属发型师。</mark>\n* **原理**：头皮和后颈是非常放松又敏感的区域，能制造酥麻感。",
+                "### 👀 眼神拉丝\n* **动作**：吃饭时，不看手机，托着下巴看她说话，嘴角带笑。\n* **话术**：<mark>你刚才那个表情好可爱。</mark>",
+                "### 🌹 肯定她的付出\n* **动作**：突然拉起她的手亲一下手背。\n* **话术**：<mark>谢谢你为这个家做的一切，我都看在眼里。</mark> (这是最强的催情剂)"
             ],
             message: [
                 "**选项 1 (温柔)**：<mark>刚忙完一阵，突然有点想你。今晚想吃什么？我回去买。</mark> (行动：带她爱吃的甜点)",
                 "**选项 2 (调皮)**：<mark>报告老婆，你的老公电量不足，急需回家抱抱充电。</mark> (行动：回家给个大拥抱)",
-                "**选项 3 (深情)**：<mark>虽然结婚7年了，但今天看你照片，还是觉得心动。</mark> (行动：发一张她的美照给她)"
+                "**选项 3 (深情)**：<mark>虽然结婚7年了，但今天看你照片，还是觉得心动。</mark> (行动：发一张她的美照给她)",
+                "**选项 4 (撩拨)**：<mark>今天不想上班了，只想跟你赖在床上。</mark> (仅限周末前发)",
+                "**选项 5 (关心)**：<mark>外面下雨了/天热了，记得照顾好自己，别太累。</mark>"
             ],
             booster: [
                 "### 👂 耳朵敏感带开发\n* **原理**：她躲是因为太痒或电流感太强（过敏）。不要直接用手碰！\n* **边缘试探**：用**呼吸**。凑近她耳朵，但不碰到，只是轻轻吹气说话。或者用**鼻尖**蹭她的耳后根。\n* **话术**：<mark>别动，我保证不碰它，只说悄悄话...</mark>",
                 "### 🛌 性爱后 Afterglow\n* **第一句话**：<mark>抱紧我，别急着起来。</mark>\n* **动作**：拿纸巾帮她擦拭，倒一杯温水喂她喝。\n* **赞美**：<mark>你刚才的声音真好听 / 你的皮肤好滑。</mark>",
-                "### 💃 让她变主动\n* **原理**：'猫绳理论'。你追得太紧，她就跑。你稍微后撤，专注于自己的魅力（健身/看书），她才会好奇凑过来。\n* **话术**：<mark>今晚你看起来好危险，我得离你远点，怕控制不住。</mark>"
+                "### 💃 让她变主动\n* **原理**：'猫绳理论'。你追得太紧，她就跑。你稍微后撤，专注于自己的魅力（健身/看书），她才会好奇凑过来。\n* **话术**：<mark>今晚你看起来好危险，我得离你远点，怕控制不住。</mark> (这是一种高级的欲擒故纵)",
+                "### 🔥 日常前戏 (Simmering)\n* **技巧**：在白天发一条稍微有点颜色的短信，比如：<mark>突然想起昨晚的你，有点心不在焉了。</mark> 然后回家后装作若无其事，制造反差张力。"
             ],
             apology: [
-                "### 🧠 忘记交代的急救\n* **话术**：<mark>老婆对不起，是我脑子短路了。你是对的，我马上补救，别气坏身体。</mark>",
-                "### 💥 脾气坏的补救\n* **话术**：<mark>刚才是我态度不好，语气重了，对不起。我不该把情绪带给你。</mark>"
+                "### 🧠 忘记交代的急救\n* **话术**：<mark>老婆对不起，是我脑子短路了。你是对的，我马上补救，别气坏身体。</mark>\n* **行动**：立刻马上去做那件事（比如倒垃圾/买东西），做完回来给她捏肩。",
+                "### 💥 脾气坏的补救\n* **话术**：<mark>刚才是我态度不好，语气重了，对不起。我不该把情绪带给你。</mark>\n* **行动**：给她倒杯水，蹲在她面前（放低姿态），握着她的手。",
+                "### 🐢 动作慢的安抚\n* **话术**：<mark>我知道你急，是我拖拉了。我现在全速前进！</mark>\n* **行动**：展示出你正在快动作处理的样子，甚至可以夸张一点逗她笑。"
             ],
             humor: [
                 "**夫妻笑话**：\n老婆问老公：“如果我掉进水里，你会救我吗？”\n老公说：“废话，我那几十年的私房钱都藏在你手机壳里！”",
+                "**带娃笑话**：\n带6岁儿子就像玩游戏，每天都是困难模式。好不容易把他哄睡了，就像打赢了BOSS，结果自己还没来得及存盘（睡觉），BOSS又醒了！",
                 "**Penang笑话**：\nPenang人开车最怕什么？\n最怕前面那辆车是'P'牌，然后还要过槟威大桥，那个心情比这里堵车还塞！"
             ],
             deeptalk: [
-                "**话题**：<mark>如果我们可以回到过去，改变我们关系中的一件事，你会想改变什么？</mark>",
-                "**话题**：<mark>在你心目中，完美的“一天”是怎样的？从早到晚。</mark>"
+                "**话题**：<mark>如果我们可以回到过去，改变我们关系中的一件事，你会想改变什么？</mark>\n**追问**：为什么是这件事？那时候你的感受是怎样的？",
+                "**话题**：<mark>在你心目中，完美的“一天”是怎样的？从早到晚。</mark>\n**追问**：这其中哪一部分最让你感到放松？我们能不能这周末实现其中一小部分？",
+                "**话题**：<mark>最近有什么事情让你感到压力很大，但我可能忽略了的？</mark>\n**追问**：我能做些什么来分担一点点吗？"
             ],
             distance: [
-                "**短信 1**：<mark>儿子刚睡了，家里突然好安静。以前觉得床不够大，现在觉得床太大了。想你。</mark>"
+                "**短信 1**：<mark>儿子刚睡了，家里突然好安静。以前觉得床不够大，现在觉得床太大了。想你。</mark>",
+                "**短信 2**：<mark>刚给儿子洗完澡，这小子越来越像你了，特别是笑起来的时候。你在那边还好吗？</mark>",
+                "**短信 3**：<mark>家里一切都搞定了，地扫了衣服洗了。你在外面放心玩，不用操心家里。等你回来女王归位。</mark>"
             ],
             reunion: [
-                "**见面第一句**：<mark>终于回来了，让我好好抱一下。（抱足10秒）</mark>"
+                "**见面第一句**：<mark>终于回来了，让我好好抱一下。（抱足10秒）</mark>",
+                "**晚餐话题**：<mark>这几天在外面，有没有吃到什么特别好吃的？</mark> (让她分享快乐，而不是只问工作)",
+                "**电影院小动作**：在黑暗中，悄悄把手伸过去，十指紧扣，然后用大拇指摩挲她的手背。不要说话，看屏幕就好。"
             ]
         };
 
-        // --- KEY SYSTEM (NEW KEY HARDCODED) ---
-        const NEW_HARDCODED_KEY = "AIzaSyBEfwvVoQSoelBlMyWWNRA8FIHlWaAlccc";
+        // --- MANUAL KEY SYSTEM (One-Time Setup) ---
+        const STORAGE_KEY = "harmony_user_api_key_v27";
         
-        // Cache Buster: Change this ID to force overwrite old cache
-        const STORAGE_KEY_NAME = "harmony_v25_key"; 
-
-        function initKey() {
-            // Force update on load if not set or if different
-            let stored = localStorage.getItem(STORAGE_KEY_NAME);
-            if (stored !== NEW_HARDCODED_KEY) {
-                localStorage.setItem(STORAGE_KEY_NAME, NEW_HARDCODED_KEY);
-                console.log("System: Key updated to V25 version.");
+        function checkKeyStatus() {
+            const key = localStorage.getItem(STORAGE_KEY);
+            const statusDot = document.getElementById("status-dot");
+            const statusText = document.getElementById("status-text");
+            
+            if (key && key.startsWith("AIza")) {
+                statusDot.classList.remove("bg-red-500");
+                statusDot.classList.add("bg-green-500");
+                statusText.innerText = "已激活 (Ready)";
+                return true;
+            } else {
+                statusDot.classList.remove("bg-green-500");
+                statusDot.classList.add("bg-red-500");
+                statusText.innerText = "未设置 Key";
+                return false;
             }
         }
-        initKey();
-        
-        function openKeyModal() { 
-            document.getElementById("custom-api-key").value = localStorage.getItem(STORAGE_KEY_NAME);
-            document.getElementById("key-modal").classList.remove("hidden"); 
-        }
+
+        window.onload = checkKeyStatus;
+
+        function openKeyModal() { document.getElementById("key-modal").classList.remove("hidden"); }
         function closeKeyModal() { document.getElementById("key-modal").classList.add("hidden"); }
+        
         function saveCustomKey() {
             const input = document.getElementById("custom-api-key").value.trim();
-            if(!input.startsWith("AIza")) return alert("格式错误");
-            localStorage.setItem(STORAGE_KEY_NAME, input);
+            if(!input.startsWith("AIza")) return alert("Key 格式似乎不正确 (应以 AIza 开头)");
+            localStorage.setItem(STORAGE_KEY, input);
+            checkKeyStatus();
             closeKeyModal();
-            alert("新 Key 已生效！");
+            alert("Key 已保存，以后无需再输入！");
+        }
+        
+        function clearCustomKey() {
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById("custom-api-key").value = "";
+            checkKeyStatus();
+            closeKeyModal();
+            alert("本地 Key 已清除。");
         }
 
         function openReader(el) {
             const contentId = el.id.replace('result-', 'content-');
             let contentHtml = document.getElementById(contentId).innerHTML;
             
-            // Offline Badge
             if (el.querySelector('.offline-badge')) {
                 contentHtml = `<div class="p-2 bg-slate-100 text-slate-500 text-xs mb-4 rounded">💡 网络不稳定，为您切换至本地精选锦囊</div>` + contentHtml;
-            }
-            // Online Badge
-            if (el.querySelector('.online-badge')) {
-                contentHtml = `<div class="p-2 bg-green-50 text-green-600 text-xs mb-4 rounded">✨ AI 实时生成 (Online)</div>` + contentHtml;
             }
 
             if(contentHtml) {
@@ -417,8 +445,15 @@
             document.body.style.overflow = '';
         }
 
-        // --- CORE LOGIC ---
+        // --- GEMINI CORE ---
         async function runEngine(type) {
+            // Check Key First
+            const apiKey = localStorage.getItem(STORAGE_KEY);
+            if (!apiKey) {
+                openKeyModal();
+                return;
+            }
+
             const btn = document.querySelector(`button[onclick="runEngine('${type}')"]`);
             const spinner = document.getElementById(`loading-${type}`);
             const resultBox = document.getElementById(`result-${type}`);
@@ -429,13 +464,19 @@
             btn.querySelector('span').style.opacity = '0.5';
             if(resultBox) {
                 resultBox.classList.add('hidden');
-                // Clean old badges
-                const badges = resultBox.querySelectorAll('.offline-badge, .online-badge');
-                badges.forEach(b => b.remove());
+                const oldBadge = resultBox.querySelector('.offline-badge');
+                if(oldBadge) oldBadge.remove();
             }
 
-            // 1. Prompt
-            let systemPrompt = `两性专家。用户：38岁男，Penang。妻37岁。指令：无链接，黄色高亮<mark>，每次不同。`;
+            // 1. Prepare Prompt
+            let systemPrompt = `你是一位专业的两性关系与健康生活顾问。
+            用户：38岁丈夫，Penang Simpang Ampat。妻37岁（慢热）。
+            **核心指令**：
+            1. **无地址链接**：不要推荐店铺链接。
+            2. **黄色高亮**：对话示例、关键话术用 \`<mark>\` 包裹。
+            3. **每次不同**：生成新颖建议，不要重复。
+            4. **格式**：Markdown，列表，清晰。`;
+
             let prompt = `随机种子：${Math.random()}。`;
 
             if (type === 'healthcare') prompt += `针对${document.getElementById('healthIssue').value}提供护理。`;
@@ -449,13 +490,9 @@
             else if (type === 'distance') prompt += `异地短信。`;
             else if (type === 'reunion') prompt += `重逢建议。`;
 
-            // 2. Execute with Current Key
-            const apiKey = localStorage.getItem(STORAGE_KEY_NAME) || NEW_HARDCODED_KEY;
+            // 2. Execute
             let success = false;
-            let errorDetail = "";
-
             try {
-                // Try 1.5-Flash First
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                 const res = await fetch(url, {
                     method: 'POST',
@@ -464,38 +501,24 @@
                 });
                 
                 if(res.status !== 200) {
-                    const errData = await res.json().catch(()=>({}));
-                    throw new Error(`API Error ${res.status}: ${errData.error?.message || res.statusText}`);
+                    const errorData = await res.json();
+                    throw new Error(`API Error ${res.status}: ${errorData.error?.message || 'Unknown'}`);
                 }
                 
                 const data = await res.json();
                 const mdText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if(!mdText) throw new Error("No Content Generated");
+                if(!mdText) throw new Error("No Content");
 
                 contentBox.innerHTML = marked.parse(mdText);
-                
-                // Add Online Badge
-                const badge = document.createElement('div');
-                badge.className = 'online-badge';
-                badge.innerText = 'Online';
-                resultBox.appendChild(badge);
-                
                 success = true;
 
             } catch (e) {
                 console.warn("API Failed:", e);
-                errorDetail = e.message;
+                // Fallback handled below
             }
 
-            // 3. Fallback
+            // 3. Fallback to Local DB
             if (!success) {
-                console.log("Using Local Backup due to:", errorDetail);
-                
-                // Alert user if it's a Key issue
-                if(errorDetail.includes("400") || errorDetail.includes("403")) {
-                    alert(`API 连接失败 (${errorDetail})。\n\n系统已为您切换至【本地锦囊】，确保您能立即获得建议。请稍后检查 Key 设置。`);
-                }
-
                 let dbKey = type;
                 if(type === 'distance' || type === 'reunion') dbKey = 'message';
                 if(type === 'spark') dbKey = 'spark';
@@ -511,7 +534,7 @@
                 resultBox.appendChild(badge);
             }
 
-            // 4. Show & Auto-Open
+            // 4. Show Result
             if(['apology', 'humor', 'distance', 'reunion', 'nopressure', 'spark'].includes(type)) {
                 openReader(resultBox); 
             } else {
