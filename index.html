@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harmony V20 (Multi-Key)</title>
+    <title>Harmony V23 (Updated Key)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -20,12 +20,12 @@
         .card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; }
         
         /* 颜色分类 */
-        .card-health::before { background-color: #10b981; } /* Emerald */
-        .card-love::before { background-color: #ec4899; } /* Pink */
-        .card-bridge::before { background-color: #8b5cf6; } /* Violet */
-        .card-spark::before { background-color: #f59e0b; } /* Amber */
-        .card-sex::before { background-color: #f43f5e; } /* Rose */
-        .card-life::before { background-color: #06b6d4; } /* Cyan */
+        .card-health::before { background-color: #10b981; }
+        .card-love::before { background-color: #ec4899; }
+        .card-bridge::before { background-color: #8b5cf6; }
+        .card-spark::before { background-color: #f59e0b; }
+        .card-sex::before { background-color: #f43f5e; }
+        .card-life::before { background-color: #06b6d4; }
         
         /* 按钮 */
         .btn { font-weight: 700; padding: 0.875rem; border-radius: 0.75rem; width: 100%; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
@@ -39,6 +39,7 @@
         /* 预览区 */
         .preview-box { margin-top: 1rem; padding: 1rem; border-radius: 0.75rem; background: #f8fafc; border: 1px dashed #cbd5e1; cursor: pointer; position: relative; }
         .click-hint { position: absolute; top: -10px; right: 10px; background: #334155; color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; font-weight: bold; }
+        .offline-badge { position: absolute; bottom: -8px; right: 10px; background: #94a3b8; color: white; font-size: 0.6rem; padding: 1px 6px; border-radius: 4px; font-weight: bold; opacity: 0.8; }
 
         /* 黄色高亮 */
         mark { background-color: #fef9c3; color: #854d0e; padding: 2px 6px; border-radius: 4px; font-weight: 600; border: 1px dashed #fde047; }
@@ -47,7 +48,6 @@
         #reader-modal { position: fixed; inset: 0; z-index: 100; background: white; transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; }
         #reader-modal.open { transform: translateY(0); }
         #reader-content { flex: 1; overflow-y: auto; padding: 1.5rem; padding-bottom: 6rem; }
-        
         .prose { font-size: 1.2rem; line-height: 1.75; color: #334155; }
         .prose h3 { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-top: 1.5em; margin-bottom: 0.5em; }
         .prose ul { padding-left: 0; list-style: none; }
@@ -63,8 +63,8 @@
     <!-- Header -->
     <header class="bg-white/90 backdrop-blur sticky top-0 z-40 border-b border-slate-200 px-5 py-4 flex justify-between items-center">
         <div>
-            <h1 class="font-black text-xl text-slate-800 tracking-tight">Harmony V20</h1>
-            <p class="text-xs text-slate-400 font-medium">Multi-Key Stable</p>
+            <h1 class="font-black text-xl text-slate-800 tracking-tight">Harmony V23</h1>
+            <p class="text-xs text-slate-400 font-medium">Updated Key</p>
         </div>
         <button onclick="openKeyModal()" class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-lg">⚙️ 设置</button>
     </header>
@@ -86,7 +86,7 @@
                     <option value="bloating">🐡 肠胃：胃胀气</option>
                     <option value="headache">🤕 头部：偏头痛</option>
                 </select>
-                <button onclick="runGemini('healthcare')" class="btn btn-health">
+                <button onclick="runEngine('healthcare')" class="btn btn-health">
                     <span>🚑 获取护理指南</span>
                     <div id="loading-healthcare" class="spinner hidden"></div>
                 </button>
@@ -109,10 +109,10 @@
                     <option value="morning_routine">☀️ 早晨/出门前</option>
                     <option value="sofa_relax">🛋️ 晚上沙发时间</option>
                     <option value="bedtime_cuddle">🌙 睡前拥抱 (纯睡觉)</option>
-                    <option value="helping_hand">🤲 做家务时</option>
+                    <option value="helping_hand">🤲 做家务/带娃时</option>
                     <option value="tired_support">🔋 她很累时</option>
                 </select>
-                <button onclick="runGemini('nopressure')" class="btn btn-bridge">
+                <button onclick="runEngine('nopressure')" class="btn btn-bridge">
                     <span>🛡️ 获取"免死金牌"动作</span>
                     <div id="loading-nopressure" class="spinner hidden"></div>
                 </button>
@@ -137,7 +137,7 @@
                     <option value="eye_contact">👀 眼神与氛围：无声胜有声</option>
                     <option value="gratitude_love">🌹 深情肯定：让她感动到想回报</option>
                 </select>
-                <button onclick="runGemini('spark')" class="btn btn-spark">
+                <button onclick="runEngine('spark')" class="btn btn-spark">
                     <span>🔥 点燃心中渴望</span>
                     <div id="loading-spark" class="spinner hidden"></div>
                 </button>
@@ -168,7 +168,7 @@
                     <option value="apology_ignore">😓 忽略了她 (补救)</option>
                     <option value="random_love">💖 日常撩拨 (随机)</option>
                 </select>
-                <button onclick="runGemini('message')" class="btn btn-love">
+                <button onclick="runEngine('message')" class="btn btn-love">
                     <span>✨ 生成 3 个选项</span>
                     <div id="loading-message" class="spinner hidden"></div>
                 </button>
@@ -189,7 +189,7 @@
                     <option value="future">🚀 未来梦想 (Dreams)</option>
                     <option value="appreciation">🙏 互相感谢 (Gratitude)</option>
                 </select>
-                <button onclick="runGemini('deeptalk')" class="btn btn-love">
+                <button onclick="runEngine('deeptalk')" class="btn btn-love">
                     <span>🗣️ 来个新话题</span>
                     <div id="loading-deeptalk" class="spinner hidden"></div>
                 </button>
@@ -215,7 +215,7 @@
                     <option value="passive_to_active">💃 长期：让她变主动 (Seduction)</option>
                     <option value="foreplay_daily">🔥 日常前戏 (Foreplay)</option>
                 </select>
-                <button onclick="runGemini('booster')" class="btn btn-sex">
+                <button onclick="runEngine('booster')" class="btn btn-sex">
                     <span>🌶️ 获取新攻略</span>
                     <div id="loading-booster" class="spinner hidden"></div>
                 </button>
@@ -242,7 +242,7 @@
                             <option value="too_slow">🐢 动作慢</option>
                         </select>
                     </div>
-                    <button onclick="runGemini('apology')" class="btn btn-life text-xs py-2">
+                    <button onclick="runEngine('apology')" class="btn btn-life text-xs py-2">
                         <span>求生指南</span>
                         <div id="loading-apology" class="spinner hidden w-3 h-3"></div>
                     </button>
@@ -258,7 +258,7 @@
                             <option value="penang_style">🍜 Penang Style</option>
                         </select>
                     </div>
-                    <button onclick="runGemini('humor')" class="btn btn-life text-xs py-2">
+                    <button onclick="runEngine('humor')" class="btn btn-life text-xs py-2">
                         <span>来个段子</span>
                         <div id="loading-humor" class="spinner hidden w-3 h-3"></div>
                     </button>
@@ -277,13 +277,13 @@
                 <div class="flex-shrink-0 w-40 bg-white p-3 rounded-xl border border-slate-200">
                     <div class="text-xs font-bold text-indigo-600 mb-1">✈️ 异地传情</div>
                     <select id="distanceContext" class="w-full text-xs mb-2 bg-slate-50 rounded"><option value="son_update">📸 儿子很乖</option><option value="miss_you_night">🌙 晚上想你</option></select>
-                    <button onclick="runGemini('distance')" class="w-full bg-indigo-50 text-indigo-600 text-xs font-bold py-1 rounded">生成</button>
+                    <button onclick="runEngine('distance')" class="w-full bg-indigo-50 text-indigo-600 text-xs font-bold py-1 rounded">生成</button>
                     <div id="result-distance" class="hidden"><div id="content-distance"></div></div>
                 </div>
                 <div class="flex-shrink-0 w-40 bg-white p-3 rounded-xl border border-slate-200">
                     <div class="text-xs font-bold text-indigo-600 mb-1">🎡 31号策划</div>
                     <select id="reunionGoal" class="w-full text-xs mb-2 bg-slate-50 rounded"><option value="dinner_talk">🍽️ 晚餐话题</option><option value="movie_touch">🎬 小动作</option></select>
-                    <button onclick="runGemini('reunion')" class="w-full bg-indigo-50 text-indigo-600 text-xs font-bold py-1 rounded">生成</button>
+                    <button onclick="runEngine('reunion')" class="w-full bg-indigo-50 text-indigo-600 text-xs font-bold py-1 rounded">生成</button>
                     <div id="result-reunion" class="hidden"><div id="content-reunion"></div></div>
                 </div>
             </div>
@@ -303,9 +303,7 @@
     <!-- API KEY MODAL -->
     <div id="key-modal" class="hidden modal-bg flex items-center justify-center">
         <div class="bg-white p-6 rounded-2xl w-11/12 max-w-sm shadow-2xl">
-            <h3 class="font-bold text-slate-800 text-lg mb-2">设置 API Key</h3>
-            <p class="text-xs text-slate-500 mb-3">系统已内置 3 组高速 Key，自动切换。</p>
-            <p class="text-xs text-slate-500 mb-1 font-bold">手动覆盖 (可选):</p>
+            <h3 class="font-bold text-slate-800 text-lg mb-2">API Key 设置</h3>
             <input type="text" id="custom-api-key" placeholder="AIza..." class="w-full border p-2 rounded-lg mb-4 text-sm">
             <div class="flex gap-2">
                 <button onclick="closeKeyModal()" class="flex-1 py-2 text-slate-500">取消</button>
@@ -316,8 +314,72 @@
     </div>
 
     <script>
-        // --- KEY SYSTEM (MULTI-KEY POOL) ---
+        // --- 1. LOCAL BACKUP LIBRARY (EXPANDED) ---
+        const LOCAL_DB = {
+            healthcare: [
+                "### 🩸 经期暖心护理 (1)\n* **话术**：<mark>老婆，这几天家务放着我来，你只要负责当我的树懒就好。</mark>\n* **行动**：去 Simpang Ampat 附近的药材店买点 **红糖** 煮姜茶。晚上帮她**热敷小腹**，手搓热了轻轻捂着，比热水袋更有温度。",
+                "### 🩸 经期暖心护理 (2)\n* **话术**：<mark>看你脸色不太好，我心疼。今晚早点睡，孩子我来搞定。</mark>\n* **行动**：给她准备一盆温热水泡脚（加点艾草包更好），促进血液循环缓解痛经。",
+                "### 🦒 颈椎酸痛缓解 (1)\n* **话术**：<mark>是不是脖子又僵了？过来，我的专属技师服务上线了。</mark>\n* **行动**：让她坐在沙发前，你站在后面。用大拇指按揉她的**风池穴**（后脑勺发际线凹陷处）。力度要轻柔渗透，不要死劲按。",
+                "### 🦒 颈椎酸痛缓解 (2)\n* **行动**：用热毛巾敷在她后颈 10 分钟。或者如果你有筋膜枪，换个软头，轻轻打斜方肌（肩膀那块肉），别打骨头。",
+                "### 🚽 便秘舒缓建议\n* **话术**：<mark>是不是肚子不舒服？今晚我们吃清淡点，我陪你。</mark>\n* **饮食**：去买点 **木瓜 (Papaya)** 或 **火龙果**，切好了端给她。这在Penang很容易买到，通便效果一流。",
+                "### 🐡 胃胀气急救\n* **话术**：<mark>肚子涨涨的很难受吧？喝口热的缓缓。</mark>\n* **行动**：帮她涂点如意油/驱风油在肚脐周围，然后用手掌顺时针慢慢揉。冲一杯温热的薄荷茶。",
+                "### 🤕 偏头痛护理\n* **话术**：<mark>老婆，先把眼睛闭上，我在呢。</mark>\n* **行动**：关掉房间的大灯，只留小夜灯。用指腹轻轻梳她的头皮，从前额发际线往后梳，这是最解压的动作。"
+            ],
+            nopressure: [
+                "### ☀️ 早晨无压微甜\n* **动作**：出门前抱她一下，比平时多停留 3 秒，深呼吸闻一下她的头发。\n* **话术**：<mark>只是想充个电再出门。今晚见。</mark>\n* **原理**：只有拥抱没有亲吻，传递的是依恋，不是求欢。",
+                "### 🛋️ 沙发上的依偎\n* **动作**：看电视时，把腿给她当枕头，或者只是握着她的手玩手指。\n* **话术**：<mark>就想这样静静跟你待着，不说话也很好。</mark>\n* **原理**：建立'我们在一起很舒服'的安全区。",
+                "### 🤲 家务时的默契\n* **动作**：经过厨房时，轻轻拍一下她的背（不是屁股！），或者帮她把掉下来的头发别到耳后。\n* **话术**：<mark>老婆辛苦了，这里交给我就好。</mark>",
+                "### 🌙 睡前纯拥抱\n* **动作**：关灯后，从背后轻轻抱住她（大勺子抱小勺子），手放在她胃部（不要摸胸）。\n* **话术**：<mark>安心睡吧，我抱着你。</mark> (然后真的去睡觉，不要乱动)"
+            ],
+            spark: [
+                "### ✨ 赞美她的魅力\n* **动作**：当她刚洗完澡或者换好衣服时，定定地看她 5 秒钟。\n* **话术**：<mark>有时候看着你，还是会觉得当初我也太幸运了吧。</mark>\n* **原理**：让她觉得自己不仅是妈妈/妻子，还是一个有魅力的女人。",
+                "### 💆 服务式撩拨\n* **动作**：帮她吹头发。手指穿过发丝触碰头皮，偶尔指尖划过她的后颈。\n* **话术**：<mark>闭上眼享受一下，今晚我是你的专属发型师。</mark>\n* **原理**：头皮和后颈是非常放松又敏感的区域，能制造酥麻感。",
+                "### 👀 眼神拉丝\n* **动作**：吃饭时，不看手机，托着下巴看她说话，嘴角带笑。\n* **话术**：<mark>你刚才那个表情好可爱。</mark>",
+                "### 🌹 肯定她的付出\n* **动作**：突然拉起她的手亲一下手背。\n* **话术**：<mark>谢谢你为这个家做的一切，我都看在眼里。</mark> (这是最强的催情剂)"
+            ],
+            message: [
+                "**选项 1 (温柔)**：<mark>刚忙完一阵，突然有点想你。今晚想吃什么？我回去买。</mark> (行动：带她爱吃的甜点)",
+                "**选项 2 (调皮)**：<mark>报告老婆，你的老公电量不足，急需回家抱抱充电。</mark> (行动：回家给个大拥抱)",
+                "**选项 3 (深情)**：<mark>虽然结婚7年了，但今天看你照片，还是觉得心动。</mark> (行动：发一张她的美照给她)",
+                "**选项 4 (撩拨)**：<mark>今天不想上班了，只想跟你赖在床上。</mark> (仅限周末前发)",
+                "**选项 5 (关心)**：<mark>外面下雨了/天热了，记得照顾好自己，别太累。</mark>"
+            ],
+            booster: [
+                "### 👂 耳朵敏感带开发\n* **原理**：她躲是因为太痒或电流感太强（过敏）。不要直接用手碰！\n* **边缘试探**：用**呼吸**。凑近她耳朵，但不碰到，只是轻轻吹气说话。或者用**鼻尖**蹭她的耳后根。\n* **话术**：<mark>别动，我保证不碰它，只说悄悄话...</mark>",
+                "### 🛌 性爱后 Afterglow\n* **第一句话**：<mark>抱紧我，别急着起来。</mark>\n* **动作**：拿纸巾帮她擦拭，倒一杯温水喂她喝。\n* **赞美**：<mark>你刚才的声音真好听 / 你的皮肤好滑。</mark>",
+                "### 💃 让她变主动\n* **原理**：'猫绳理论'。你追得太紧，她就跑。你稍微后撤，专注于自己的魅力（健身/看书），她才会好奇凑过来。\n* **话术**：<mark>今晚你看起来好危险，我得离你远点，怕控制不住。</mark> (这是一种高级的欲擒故纵)",
+                "### 🔥 日常前戏 (Simmering)\n* **技巧**：在白天发一条稍微有点颜色的短信，比如：<mark>突然想起昨晚的你，有点心不在焉了。</mark> 然后回家后装作若无其事，制造反差张力。"
+            ],
+            apology: [
+                "### 🧠 忘记交代的急救\n* **话术**：<mark>老婆对不起，是我脑子短路了。你是对的，我马上补救，别气坏身体。</mark>\n* **行动**：立刻马上去做那件事（比如倒垃圾/买东西），做完回来给她捏肩。",
+                "### 💥 脾气坏的补救\n* **话术**：<mark>刚才是我态度不好，语气重了，对不起。我不该把情绪带给你。</mark>\n* **行动**：给她倒杯水，蹲在她面前（放低姿态），握着她的手。",
+                "### 🐢 动作慢的安抚\n* **话术**：<mark>我知道你急，是我拖拉了。我现在全速前进！</mark>\n* **行动**：展示出你正在快动作处理的样子，甚至可以夸张一点逗她笑。"
+            ],
+            humor: [
+                "**夫妻笑话**：\n老婆问老公：“如果我掉进水里，你会救我吗？”\n老公说：“废话，我那几十年的私房钱都藏在你手机壳里！”",
+                "**带娃笑话**：\n带6岁儿子就像玩游戏，每天都是困难模式。好不容易把他哄睡了，就像打赢了BOSS，结果自己还没来得及存盘（睡觉），BOSS又醒了！",
+                "**Penang笑话**：\nPenang人开车最怕什么？\n最怕前面那辆车是'P'牌，然后还要过槟威大桥，那个心情比这里堵车还塞！"
+            ],
+            deeptalk: [
+                "**话题**：<mark>如果我们可以回到过去，改变我们关系中的一件事，你会想改变什么？</mark>\n**追问**：为什么是这件事？那时候你的感受是怎样的？",
+                "**话题**：<mark>在你心目中，完美的“一天”是怎样的？从早到晚。</mark>\n**追问**：这其中哪一部分最让你感到放松？我们能不能这周末实现其中一小部分？",
+                "**话题**：<mark>最近有什么事情让你感到压力很大，但我可能忽略了的？</mark>\n**追问**：我能做些什么来分担一点点吗？"
+            ],
+            distance: [
+                "**短信 1**：<mark>儿子刚睡了，家里突然好安静。以前觉得床不够大，现在觉得床太大了。想你。</mark>",
+                "**短信 2**：<mark>刚给儿子洗完澡，这小子越来越像你了，特别是笑起来的时候。你在那边还好吗？</mark>",
+                "**短信 3**：<mark>家里一切都搞定了，地扫了衣服洗了。你在外面放心玩，不用操心家里。等你回来女王归位。</mark>"
+            ],
+            reunion: [
+                "**见面第一句**：<mark>终于回来了，让我好好抱一下。（抱足10秒）</mark>",
+                "**晚餐话题**：<mark>这几天在外面，有没有吃到什么特别好吃的？</mark> (让她分享快乐，而不是只问工作)",
+                "**电影院小动作**：在黑暗中，悄悄把手伸过去，十指紧扣，然后用大拇指摩挲她的手背。不要说话，看屏幕就好。"
+            ]
+        };
+
+        // --- KEY SYSTEM ---
         const SYSTEM_KEYS = [
+            "AIzaSyBEfwvVoQSoelBlMyWWNRA8FIHlWaAlccc", // New Key
             "AIzaSyClDjCuLE2RpWL5v1A2DQQ0j2gnFd6p_Vg",
             "AIzaSyAS8Tf9Gbd_FWXq1CWalOILhuPODjluvJI",
             "AIzaSyCinhRhthd9YQF1AbZ_gaEMxa_PkgcBsr8"
@@ -330,17 +392,20 @@
             if(!input.startsWith("AIza")) return alert("格式错误");
             localStorage.setItem("my_custom_key", input);
             closeKeyModal();
-            alert("已保存您的专属 Key！");
         }
         function clearCustomKey() {
             localStorage.removeItem("my_custom_key");
             closeKeyModal();
-            alert("已恢复到系统自动 Key 池");
         }
 
         function openReader(el) {
             const contentId = el.id.replace('result-', 'content-');
-            const contentHtml = document.getElementById(contentId).innerHTML;
+            let contentHtml = document.getElementById(contentId).innerHTML;
+            
+            if (el.querySelector('.offline-badge')) {
+                contentHtml = `<div class="p-2 bg-slate-100 text-slate-500 text-xs mb-4 rounded">💡 网络拥堵，为您切换至本地精选锦囊</div>` + contentHtml;
+            }
+
             if(contentHtml) {
                 document.getElementById('reader-content').innerHTML = contentHtml;
                 document.getElementById('reader-modal').classList.add('open');
@@ -352,9 +417,9 @@
             document.body.style.overflow = '';
         }
 
-        // --- GEMINI CORE WITH MULTI-KEY FAILOVER ---
-        async function runGemini(type) {
-            const btn = document.querySelector(`button[onclick="runGemini('${type}')"]`);
+        // --- CORE LOGIC ---
+        async function runEngine(type) {
+            const btn = document.querySelector(`button[onclick="runEngine('${type}')"]`);
             const spinner = document.getElementById(`loading-${type}`);
             const resultBox = document.getElementById(`result-${type}`);
             const contentBox = document.getElementById(`content-${type}`);
@@ -362,91 +427,37 @@
             spinner.classList.remove('hidden');
             btn.disabled = true;
             btn.querySelector('span').style.opacity = '0.5';
-            if(resultBox) resultBox.classList.add('hidden');
+            if(resultBox) {
+                resultBox.classList.add('hidden');
+                const oldBadge = resultBox.querySelector('.offline-badge');
+                if(oldBadge) oldBadge.remove();
+            }
 
-            // 1. Prepare Keys: Custom Key (if any) -> System Key 1 -> System Key 2 -> System Key 3
+            // 1. Prepare Prompt (Shortened for efficiency)
+            let systemPrompt = `两性专家。用户：38岁男，Penang。妻37岁。指令：无链接，黄色高亮<mark>，每次不同。`;
+            let prompt = `随机种子：${Math.random()}。`;
+
+            if (type === 'healthcare') prompt += `针对${document.getElementById('healthIssue').value}提供护理。`;
+            else if (type === 'nopressure') prompt += `无压亲密：${document.getElementById('nopressureContext').value}。定心丸话术<mark>高亮</mark>。`;
+            else if (type === 'spark') prompt += `心动引燃：${document.getElementById('sparkContext').value}。话术<mark>高亮</mark>。`;
+            else if (type === 'message') prompt += `微信文案：${document.getElementById('msgContext').value}。3个风格。`;
+            else if (type === 'deeptalk') prompt += `深度话题：${document.getElementById('topicVibe').value}。`;
+            else if (type === 'booster') prompt += `性爱攻略：${document.getElementById('boosterGoal').value}。`;
+            else if (type === 'apology') prompt += `道歉：${document.getElementById('apologyType').value}。`;
+            else if (type === 'humor') prompt += `笑话：${document.getElementById('humorType').value}。`;
+            else if (type === 'distance') prompt += `异地短信。`;
+            else if (type === 'reunion') prompt += `重逢建议。`;
+
+            // 2. Try API First
             let keysToTry = [...SYSTEM_KEYS];
             const customKey = localStorage.getItem("my_custom_key");
-            if(customKey) keysToTry.unshift(customKey); // Put custom key first
+            if(customKey) keysToTry.unshift(customKey);
 
-            // --- PROMPTS ---
-            let systemPrompt = `你是一位专业的两性关系与健康生活顾问。
-            用户：38岁丈夫，Penang Simpang Ampat。妻37岁（慢热）。
-            **核心指令**：
-            1. **无地址链接**：不要推荐店铺链接。
-            2. **黄色高亮**：对话示例、关键话术用 \`<mark>\` 包裹。
-            3. **每次不同**：生成新颖建议，不要重复。
-            4. **格式**：Markdown，列表，清晰。`;
-
-            let prompt = `随机种子：${Math.random()}。`; 
-
-            // HEALTH
-            if (type === 'healthcare') {
-                const issue = document.getElementById('healthIssue').value;
-                systemPrompt += " 任务：身体不适护理。";
-                if(issue === 'period') prompt += "她来月事。1.暖心话术。2.行动指南。3.按摩手法。";
-                if(issue === 'neck_pain') prompt += "她颈项酸痛。1.缓解动作。2.生活建议。3.安抚话术。";
-                if(issue === 'constipation') prompt += "她便秘。1.饮食建议（Penang水果）。2.腹部按摩。";
-                if(issue === 'bloating') prompt += "她胃胀气。1.紧急姿势。2.饮品。";
-                if(issue === 'headache') prompt += "她头痛。1.静养。2.头部按摩。";
-            }
-            // NO PRESSURE
-            else if (type === 'nopressure') {
-                const ctx = document.getElementById('nopressureContext').value;
-                systemPrompt += " 任务：**无压亲密**。目标是安全感，**明确传达今天不做爱**。";
-                prompt += `场景：${ctx}。3个微动作。
-                含：具体动作、定心丸话术(<mark>高亮</mark>)、心理原理。`;
-            }
-            // SPARK (NEW)
-            else if (type === 'spark') {
-                const ctx = document.getElementById('sparkContext').value;
-                systemPrompt += " 任务：**心动引燃**。目标是**让她的心满满的，自然产生渴望**。";
-                prompt += `场景：${ctx}。3个高阶技巧。
-                含：心动话术(<mark>高亮</mark>)、微动作、原理。`;
-            }
-            // MESSAGE
-            else if (type === 'message') {
-                const ctx = document.getElementById('msgContext').value;
-                prompt += `场景：${ctx}。**3个不同风格**微信文案+配套行动。话术<mark>高亮</mark>。`;
-            }
-            // DEEP TALK
-            else if (type === 'deeptalk') {
-                const vibe = document.getElementById('topicVibe').value;
-                prompt += `氛围：${vibe}。高质量话题+2个追问。内容<mark>高亮</mark>。`;
-            }
-            // BOOSTER
-            else if (type === 'booster') {
-                const goal = document.getElementById('boosterGoal').value;
-                systemPrompt += " 任务：性心理实战攻略。";
-                if(goal === 'sensitive_ears') prompt += "妻耳朵敏感抗拒摸。1.脱敏原理。2.边缘试探(呼吸/头发)。3.引导话术(<mark>高亮</mark>)。";
-                else if(goal === 'aftercare') prompt += "性爱后Afterglow。1.第一句话。2.肢体动作。3.赞美。话术<mark>高亮</mark>。";
-                else if(goal === 'during_sex_talk') prompt += "性爱中聊什么？3个层级话术，<mark>高亮</mark>。";
-                else if(goal === 'passive_to_active') prompt += "让她变主动？原理+布局+引导话术(<mark>高亮</mark>)。";
-                else if(goal === 'foreplay_daily') prompt += "日常前戏。3个不露骨但有张力的互动。";
-            }
-            // OTHERS
-            else if (type === 'apology') {
-                const r = document.getElementById('apologyType').value;
-                prompt += `因为${r}惹她生气。1.道歉话术<mark>高亮</mark>。2.补救行动。3.逗她消气。`;
-            }
-            else if (type === 'humor') {
-                const t = document.getElementById('humorType').value;
-                prompt += `关于${t}的笑话。要真的好笑。`;
-            }
-            else if (type === 'distance') {
-                prompt += `异地传情。3条短信。内容<mark>高亮</mark>。`;
-            }
-            else if (type === 'reunion') {
-                prompt += `31号重逢。3个建议/话题。`;
-            }
-
-            // --- EXECUTE WITH FAILOVER ---
             let success = false;
-            let finalError = null;
 
             for (const key of keysToTry) {
                 try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
                     const res = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -454,39 +465,42 @@
                     });
                     
                     if(res.status !== 200) throw new Error(`API Error: ${res.status}`);
-                    
                     const data = await res.json();
-                    if(data.error) throw new Error(data.error.message);
-                    
-                    const mdText = data.candidates?.[0]?.content?.parts?.[0]?.text || "AI 思考中...";
-                    
-                    // Success! Render and break loop
-                    contentBox.innerHTML = marked.parse(mdText);
-                    
-                    if(['apology', 'humor', 'distance', 'reunion', 'nopressure', 'spark'].includes(type)) {
-                        document.getElementById('reader-content').innerHTML = marked.parse(mdText);
-                        document.getElementById('reader-modal').classList.add('open');
-                        document.body.style.overflow = 'hidden';
-                    } else {
-                        resultBox.classList.remove('hidden');
-                    }
-                    
-                    success = true;
-                    break; // STOP LOOP
+                    const mdText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if(!mdText) throw new Error("No Content");
 
+                    contentBox.innerHTML = marked.parse(mdText);
+                    success = true;
+                    break; 
                 } catch (e) {
-                    console.warn(`Key failed, trying next...`, e);
-                    finalError = e;
-                    // Continue to next key
+                    console.warn(`Key failed`);
                 }
             }
 
+            // 3. Fallback to Local DB
             if (!success) {
-                alert("所有连接尝试都失败了，请检查网络。");
-                console.error(finalError);
+                console.log("Switching to Local Backup...");
+                let dbKey = type;
+                if(type === 'distance' || type === 'reunion') dbKey = 'message'; 
+                
+                const list = LOCAL_DB[dbKey] || LOCAL_DB['message'];
+                const randomItem = list[Math.floor(Math.random() * list.length)];
+                
+                contentBox.innerHTML = marked.parse(randomItem);
+                
+                const badge = document.createElement('div');
+                badge.className = 'offline-badge';
+                badge.innerText = 'Offline Mode';
+                resultBox.appendChild(badge);
             }
 
-            // Cleanup
+            // 4. Show Result (Auto-open for simple types)
+            if(['apology', 'humor', 'distance', 'reunion', 'nopressure', 'spark'].includes(type)) {
+                openReader(resultBox); 
+            } else {
+                resultBox.classList.remove('hidden');
+            }
+
             spinner.classList.add('hidden');
             btn.disabled = false;
             btn.querySelector('span').style.opacity = '1';
